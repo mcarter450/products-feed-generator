@@ -1,0 +1,7 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+#woocommerce-product-data .woocommerce_options_panel .form-field._product_condition_field .wc-radios label {
+	margin-left: 0;
+}

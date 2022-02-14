@@ -1,0 +1,10 @@
+# ignore node dependency directories
+node_modules/
+
+# ignore Mac OS files
+.DS_Store
+
+#  ignore log files and database
+*.log
+*.sql
+*.sqlite
