@@ -42,7 +42,7 @@ class Products_Feed_Generator_Activator {
 				mkdir($feed_dir);
 			}
 		}
-
+		
 	}
 
 }

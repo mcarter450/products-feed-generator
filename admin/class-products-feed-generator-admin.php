@@ -180,6 +180,21 @@ class Products_Feed_Generator_Admin {
 			'placeholder' => 'wood',
 			'desc' => __( 'Default material to include with each product', 'products-feed-generator' ),
 		);
+		// $settings[] = array(
+		// 	'name'   => __( 'Attribute map', 'products-feed-generator' ),
+		// 	'id'     => 'pfg_product_attributes_map',
+		// 	'type'   => 'textarea',
+		// 	'placeholder' => "attribute-slug: google_field\nlength: size\nmaterial: material",
+		// 	'style' => 'height:100px;',
+		// 	'desc' => __( 'Map product attribute to Google field, use YAML syntax', 'products-feed-generator' ),
+		// );
+		$settings[] = array(
+			'name'   => __( 'Attribute map', 'products-feed-generator' ),
+			'id'     => 'pfg_product_attributes_map',
+			'type'   => 'hidden',
+			'style' => 'height:100px;',
+			//'desc' => __( 'Map product attribute to Google field, use YAML syntax', 'products-feed-generator' ),
+		);
 
 		$WC_Shipping = new WC_Shipping();
 		$shipping_classes = $WC_Shipping->get_shipping_classes();
@@ -401,13 +416,13 @@ class Products_Feed_Generator_Admin {
 		}
 
 		$materials = 'wood';
-		if ($material = $product->get_attribute('Material')) {
-			if ( stripos($material, '|') !== false ) {
-				$materials .= '/'. str_replace(' | ', '/', strtolower($material));
-			} else {
-				$materials .= '/'. strtolower($material);
-			}
-		}
+		// if ($material = $product->get_attribute('Material')) {
+		// 	if ( stripos($material, '|') !== false ) {
+		// 		$materials .= '/'. str_replace(' | ', '/', strtolower($material));
+		// 	} else {
+		// 		$materials .= '/'. strtolower($material);
+		// 	}
+		// }
 
 		$attributes = $product->get_attributes();
 
@@ -471,7 +486,7 @@ class Products_Feed_Generator_Admin {
 		}
 
 		if ( $materials ) {
-			$writer->writeElement('g:material', $materials);
+			//$writer->writeElement('g:material', $materials);
 		}
 		// if ( $lengths ) {
 		// 	$this->write_product_details($writer, 'Length', $lengths);
@@ -480,15 +495,47 @@ class Products_Feed_Generator_Admin {
 		// 	$this->write_product_details($writer, 'Finish', $finish);
 		// }
 
+		$attrib_map = $this->get_attrib_map( get_option('pfg_product_attributes_map') );
+
+		//error_log( print_r($attrib_map, 1) );
+
 		foreach ($attributes as $key => $value) {
 			if ( is_object($value) ) {
 				$options = implode( ', ', $value->get_options() );
 
 				$this->write_product_details($writer, $value->get_name(), $options);
+			} elseif ( array_key_exists($key, $attrib_map) ) {
+
+				//error_log($key);
+				//error_log($value);
+				$gfield = trim($attrib_map[$key]);
+				//error_log("g:". $gfield);
+				$writer->writeElement("g:{$gfield}", $value);
+			} else {
+				$this->write_product_details($writer, $key, $value);
 			}
 		}
 
 		$writer->endElement(); // end item
+
+	}
+
+	private function get_attrib_map($text) {
+
+		$separator = "\r\n";
+		$line = strtok($text, $separator);
+
+		$map = array();
+
+		while ($line !== false) {
+		    # do something with $line
+		    $attribs = explode(':', $line);
+		    //$map[$attribs[0]] = $attribs[1];
+		    $map[$attribs[0]] = $attribs[1];
+		    $line = strtok( $separator );
+		}
+
+		return $map;
 
 	}
 
@@ -666,9 +713,43 @@ class Products_Feed_Generator_Admin {
 	 */
 	public function enqueue_scripts() {
 
+		global $wpdb;
+
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/products-feed-generator-admin.js', array( 'jquery' ), $this->version, false );
 
-		$local_vars = array( 'pluginUrl' => ( plugins_url() .'/'. $this->plugin_name ) );
+		if ( $filtered_attributes = $_COOKIE['pfg_attribute_map'] ) {
+			$filtered_attributes = json_decode(stripslashes($filtered_attributes));
+		}
+		else {
+
+			$results = $wpdb->get_results( "SELECT meta_value FROM {$wpdb->prefix}postmeta where meta_key = '_product_attributes' LIMIT 100", OBJECT );
+
+			$filtered_attributes = array();
+
+			foreach ($results as $row) {
+				$attributes = unserialize($row->meta_value);
+				if ( is_array($attributes) ) {
+					foreach ($attributes as $key => $value) {
+						if ($value['is_visible'] and $value['is_variation']) {
+							$filtered_attributes[$key] = $value['name'];
+						}
+					}
+				}
+			}
+
+			$json = json_encode($filtered_attributes);
+
+			// Only set cookie cache if less than 4096 bytes
+			if ( mb_strlen($json, '8bit') < 4096 ) {
+				setcookie("pfg_attribute_map", $json, time()+3600); // Expires in 1 hour
+			}
+
+		} 
+
+		$local_vars = array( 
+			'pluginUrl' => ( plugins_url() .'/'. $this->plugin_name ),
+			'attributes' => $filtered_attributes,
+		);
 
 		wp_localize_script( $this->plugin_name, 'jsVars', $local_vars );
 
