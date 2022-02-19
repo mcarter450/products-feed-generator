@@ -1,33 +1,65 @@
 (function( $ ) {
 	'use strict';
 
+	/**
+	 * Array of all added options
+	 *
+	 * @type {object}
+	 */
 	var added_options = [];
 
-	function get_attribute_map_template(options) {
-		var html =`
+	/**
+	 * @param {string} options
+	 * @return {string} The html with template vars applied
+	 */
+	function get_attribute_map_template(google_options, attrib_options, attrib_map) {
+
+		let html =`
 		<tr valign="top">
 			<th scope="row" class="titledesc">
 				<label>Attribute map</label>
 			</th>
 			<td class="forminp forminp-text">
 				<select name="pfg_product_attributes_key" id="pfg_product_attributes_key" style="width:200px;">
-					<option value="g:size">Google: Size</option>
-					<option value="g:color">Google: Color</option>
-					<option value="g:material">Google: Material</option>
-					<option value="g:pattern">Google: Pattern</option>
+					${google_options}
 				</select>
 				<select name="pfg_product_attributes_val" id="pfg_product_attributes_val" style="width:200px;">
-					${options}
+					${attrib_options}
 				</select><br>
 				<button id="add_attribute_mapping">Add mapping</button>
 				<!--p class="description">Google field</p-->
-				<div id="attrib_map"></div>
+				<div id="attrib_map"
+					${attrib_map}
+				</div>
 			</td>
 		</tr>`;
 
 		return html;
+
 	}
 
+	/**
+	 * @param {string} key
+	 * @param {string} val
+	 * @return {string} The html with template vars applied
+	 */
+	function get_attribute_template(key, val) {
+
+		let html = `
+		<div id="${key}-${val}" data-key="${key}">
+			<input type="hidden" name="attrib_map_${key}" name="attrib_map_${key}" value="${val}">
+			<span class="field">${key}</span> -> <span class="attrib">${val}</span>
+			<button id="del_attribute_mapping_${key}">Delete</button>
+		</div>`;
+
+		return html;
+
+	}
+
+	/**
+	 * @param {object} e 	jQuery event object
+	 * @return {boolean} False to prevent event from bubbling
+	 */
 	function click_del_attribute_mapping(e) {
 
 		let parent = $(this).parent();
@@ -51,9 +83,14 @@
 
 	}
 
+	/**
+	 * @param {object} e 	jQuery event object
+	 * @return {boolean} False to prevent event from bubbling
+	 */
 	function click_add_attribute_mapping(e) {
 
 		let key = $('#pfg_product_attributes_key').val();
+		let val = $('#pfg_product_attributes_val').val();
 
 		if (key === null) {
 			return false;
@@ -65,22 +102,19 @@
 
 		$('#pfg_product_attributes_key > :selected').prop('disabled', true);
 
-		let val = $('#pfg_product_attributes_val').val();
+		let $attrib = $(get_attribute_template(key, val));
 
-		let $btn_del = $('<button id="del_attribute_mapping">Delete</button>');
+		$attrib.find(`#del_attribute_mapping_${key}`).on('click', click_del_attribute_mapping);
 
-		$btn_del.on('click', click_del_attribute_mapping);
-
-		let $attribs = $(`<div id="${key}-${val}" data-key="${key}"><span class="field">${key}</span> -> <span class="attrib">${val}</span></div>`);
-
-		$attribs.append($btn_del);
-
-		$('#attrib_map').append($attribs);
+		$('#attrib_map').append($attrib);
 
 		return false;
 
 	}
 
+	/**
+	 * @param {object} e 	jQuery event object
+	 */
 	function click_generate_feed(e) {
 
 		let data = {
@@ -113,17 +147,47 @@
 
 	}
 
+	/**
+	 * Handle dom ready event
+	 */
 	jQuery(document).ready(function($) {
 
-		let options = '';
+		let attrib_options = '';
+		let google_options = '';
+		let attrib_map = '';
 
-		for (let key in jsVars.attributes) {
-			options += `<option value="${key}">${jsVars.attributes[key]}</option>`;
+		let google_fields = {
+			'size': 'Google: Size',
+			'color': 'Google: Color',
+			'material': 'Google: Material',
+			'pattern': 'Google: Pattern'
+		};
+
+		var attributes_map = jsVars.attributes_map;
+
+		for (let key in google_fields) {
+			if (attributes_map[key]) {
+
+				attrib_map += get_attribute_template(key, attributes_map[key]);
+
+				google_options += `<option value="${key}" disabled="disabled">${google_fields[key]}</option>`;
+
+			} else {
+				google_options += `<option value="${key}">${google_fields[key]}</option>`;
+			}
 		}
 
-		$('#pfg_product_material').closest('tr').after(get_attribute_map_template(options));
+		for (let key in jsVars.attributes) {
+			attrib_options += `<option value="${key}">${jsVars.attributes[key]}</option>`;
+		}
 
-		$('#add_attribute_mapping').on('click', click_add_attribute_mapping);
+		let $attribute_map_template = $(get_attribute_map_template(google_options, attrib_options, attrib_map));
+
+		$attribute_map_template.find('#add_attribute_mapping').on('click', click_add_attribute_mapping);
+		$attribute_map_template.find('[id^=del_attribute_mapping_]').on('click', click_del_attribute_mapping);
+
+		$('#pfg_product_material').closest('tr').after($attribute_map_template);
+		
 		$('#generate_feed').on('click', click_generate_feed);
 		
 	});

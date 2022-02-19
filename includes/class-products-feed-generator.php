@@ -112,9 +112,9 @@ class Products_Feed_Generator {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-products-feed-generator-i18n.php';
 
 		/**
-		 * The class responsible for representing the google product feed data
+		 * The class responsible for writing the google product feed data
 		 */
-		//require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/models/class-products-feed-generator-google-feed-model.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/xml-writers/class-products-feed-generator-google-shopping-xml-writer.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
@@ -175,7 +175,9 @@ class Products_Feed_Generator {
 
 
 			$this->loader->add_action( 'woocommerce_admin_field_button', $plugin_admin, 'woo_add_admin_field_button' );
-			$this->loader->add_action('woocommerce_process_product_meta', $plugin_admin, 'woocommerce_product_custom_fields_save', 10, 1);
+
+			$this->loader->add_action( 'woocommerce_settings_save_products', $plugin_admin, 'woo_save_settings' );
+			$this->loader->add_action( 'woocommerce_process_product_meta', $plugin_admin, 'woocommerce_product_custom_fields_save', 10, 1 );
 
 			$this->loader->add_action( 'wp_ajax_generate_google_products_feed', $plugin_admin, 'generate_google_products_feed' );
 			

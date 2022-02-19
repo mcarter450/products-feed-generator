@@ -40,29 +40,25 @@ class Products_Feed_Generator_Admin {
 	 */
 	private $version;
 
-	protected $shipping_class_map = array();
-
-	protected $bloginfo = array();
-
-	protected $feed_url;
-
-	protected $canonical_urls = array();
+	/**
+	 * @since 	1.0.0
+	 * @var array 	Map of product attributes
+	 */	
+	protected $attributes_map = array();
 
 	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
-	 * @param      string    $plugin_name       The name of this plugin.
-	 * @param      string    $version    The version of this plugin.
+	 * @param string    $plugin_name       The name of this plugin.
+	 * @param string    $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
-		$this->bloginfo['name'] = get_bloginfo('name');
-		$this->bloginfo['url'] = get_bloginfo('url');
-		$this->bloginfo['description'] = get_bloginfo('description');
+		$this->attributes_map = get_option('pfg_product_attributes_map');
 
 	}
 
@@ -80,7 +76,12 @@ class Products_Feed_Generator_Admin {
 		
 	}
 
+	/**
+	 * @since    1.0.0
+	 * @param array $value
+	 */
 	function woo_add_admin_field_button( $value ) {
+
 		$option_value = (array) WC_Admin_Settings::get_option( $value['id'] );
 		$description = WC_Admin_Settings::get_field_description( $value );
 
@@ -179,21 +180,6 @@ class Products_Feed_Generator_Admin {
 			'type'   => 'text',
 			'placeholder' => 'wood',
 			'desc' => __( 'Default material to include with each product', 'products-feed-generator' ),
-		);
-		// $settings[] = array(
-		// 	'name'   => __( 'Attribute map', 'products-feed-generator' ),
-		// 	'id'     => 'pfg_product_attributes_map',
-		// 	'type'   => 'textarea',
-		// 	'placeholder' => "attribute-slug: google_field\nlength: size\nmaterial: material",
-		// 	'style' => 'height:100px;',
-		// 	'desc' => __( 'Map product attribute to Google field, use YAML syntax', 'products-feed-generator' ),
-		// );
-		$settings[] = array(
-			'name'   => __( 'Attribute map', 'products-feed-generator' ),
-			'id'     => 'pfg_product_attributes_map',
-			'type'   => 'hidden',
-			'style' => 'height:100px;',
-			//'desc' => __( 'Map product attribute to Google field, use YAML syntax', 'products-feed-generator' ),
 		);
 
 		$WC_Shipping = new WC_Shipping();
@@ -348,209 +334,47 @@ class Products_Feed_Generator_Admin {
 	}
 
 	/**
-	 * Write XML for product details section
+	 * Save custom attributes map
+	 *
+	 * @since    1.0.0
 	 */
-	public function write_product_details( $writer, $attribute, $value ) {
+	public function woo_save_settings() {
 
-		$writer->startElement('g:product_detail');
+		$attributes_map = array();
 
-		if ($value) {
-			$writer->writeElement('g:section_name', 'Additional information');
-			$writer->writeElement('g:attribute_name', $attribute);
-			$writer->writeElement('g:attribute_value', $value);
-		}
+		$section = sanitize_key( $_GET['section'] );
+		if ($section == 'pfg') {
+			foreach ($_POST as $key => $value) {
+				if (stripos($key, 'attrib_map_') !== false) {
+					$attribkey = substr( $key, strlen('attrib_map_') );
+					$attribval = sanitize_key($value);
 
-		$writer->endElement(); // end product_detail
-
-	}
-
-	/**
-	 * Write XML for product data
-	 */
-	public function write_product_data( $writer, $product, $parent_desc, $default_brand, $woo_currency, $woo_weight_unit, $identifier_exists, $product_variants ) {
-
-		$id = $product->get_sku() ?: $product->get_id();
-		//$title = htmlspecialchars($post->post_title, ENT_XML1, 'UTF-8');
-		
-		$link = $product->get_permalink();
-
-		$description = $product->get_description() ?: $parent_desc;
-        //$model->description = htmlspecialchars($description, ENT_XML1, 'UTF-8');
-
-        $price = '';
-        $sale_price = '';
-
-		if ( $reg_price = $product->get_price() ) {
-			$price = "$reg_price $woo_currency";
-		}
-		if ( $sale_price = $product->get_sale_price() ) {
-			$reg_price = $product->get_regular_price();
-
-			$price = "$reg_price $woo_currency";
-			$sale_price = "$sale_price $woo_currency";
-		}
-		
-		$availability = 'out_of_stock';
-		if ( $product->get_stock_quantity() > 0 ) {
-			$availability = 'in_stock';
-		}
-
-		$google_category = $product->get_meta('_product_google_category');
-
-		$brand = $product->get_meta('_product_brand') ?: $default_brand;
-
-		if ( $identifier_exists == 'yes' ) {
-			$gtin = $product->get_meta('_product_gtin');
-			$mpn = $product->get_meta('_product_mpn');
-			$condition = $product->get_meta('_product_condition');
-		}
-
-		$shipping_weight = '';
-		if ( $weight = $product->get_weight() ) {
-			$shipping_weight = $weight .' '. $woo_weight_unit;
-		}
-
-		$shipping_label = '';
-		if ( $shipping_class = $product->get_shipping_class() ) {
-			$shipping_label = $this->shipping_class_map[$shipping_class];
-		}
-
-		$materials = 'wood';
-		// if ($material = $product->get_attribute('Material')) {
-		// 	if ( stripos($material, '|') !== false ) {
-		// 		$materials .= '/'. str_replace(' | ', '/', strtolower($material));
-		// 	} else {
-		// 		$materials .= '/'. strtolower($material);
-		// 	}
-		// }
-
-		$attributes = $product->get_attributes();
-
-		$title = $product->get_title();
-
-		foreach ($attributes as $key => $value) {
-			if ( is_scalar($value) ) {
-				$title .= " - {$value}"; 
+					$attributes_map[$attribkey] = $attribval;
+				}
 			}
 		}
 
-		// Get Google product thumbnail override or default to featured image 
-		$image_link = $product->get_meta('_product_image_thumbnail') ?: wp_get_attachment_url( $product->get_image_id() );
-
-		$writer->startElement('item');
-
-		$writer->writeElement('g:id', $id);
-		$writer->writeElement('g:title', $title);
-		$writer->writeElement('g:link', $link);
+		update_option('pfg_product_attributes_map', $attributes_map);
 		
-		if ( is_a($product, 'WC_Product_Variation') ) {
-
-			$parent_id = $product->get_parent_id();
-			$parent_data = $product->get_parent_data();
-			$item_group_id = $parent_data['sku'] ?: $parent_id;
-
-			$writer->writeElement('g:item_group_id', $item_group_id);
-			$writer->writeElement('g:canonical_link', $this->canonical_urls[$parent_id]);
-
-		} elseif ( $product_variants == 'parent_and_variants' ) {
-
-			$writer->writeElement('g:item_group_id', $id);
-			$writer->writeElement('g:canonical_link', $link);
-
-		}
-
-		$writer->writeElement('g:description', $description);
-		$writer->writeElement('g:price', $price);
-		$writer->writeElement('g:sale_price', $sale_price);
-		$writer->writeElement('g:availability', $availability);
-		$writer->writeElement('g:brand', $brand);
-		$writer->writeElement('g:google_product_category', $google_category);
-		$writer->writeElement('g:identifier_exists', $identifier_exists);
-		if ( $identifier_exists == 'yes' ) {
-			$writer->writeElement('g:gtin', $gtin);
-			$writer->writeElement('g:mpn', $mpn);
-			$writer->writeElement('g:condition', $condition);
-		}
-		$writer->writeElement('g:shipping_weight', $shipping_weight);
-		$writer->writeElement('g:shipping_label', $shipping_label);
-		$writer->writeElement('g:image_link', $image_link);
-
-		// Only available for parent product and not variations
-		if ($attachment_images = $product->get_gallery_image_ids()) {
-			$attachment_images = array_slice($attachment_images, 0, 10);
-			foreach ($attachment_images as $attachment_id) {
-				$image_link = wp_get_attachment_image_src($attachment_id, 'woocommerce_single')[0];
-				//$image_links[] = htmlspecialchars($image_link);
-				$writer->writeElement('g:additional_image_link', $image_link);
-			}
-		}
-
-		if ( $materials ) {
-			//$writer->writeElement('g:material', $materials);
-		}
-		// if ( $lengths ) {
-		// 	$this->write_product_details($writer, 'Length', $lengths);
-		// }
-		// if ( $finish ) {
-		// 	$this->write_product_details($writer, 'Finish', $finish);
-		// }
-
-		$attrib_map = $this->get_attrib_map( get_option('pfg_product_attributes_map') );
-
-		//error_log( print_r($attrib_map, 1) );
-
-		foreach ($attributes as $key => $value) {
-			if ( is_object($value) ) {
-				$options = implode( ', ', $value->get_options() );
-
-				$this->write_product_details($writer, $value->get_name(), $options);
-			} elseif ( array_key_exists($key, $attrib_map) ) {
-
-				//error_log($key);
-				//error_log($value);
-				$gfield = trim($attrib_map[$key]);
-				//error_log("g:". $gfield);
-				$writer->writeElement("g:{$gfield}", $value);
-			} else {
-				$this->write_product_details($writer, $key, $value);
-			}
-		}
-
-		$writer->endElement(); // end item
-
-	}
-
-	private function get_attrib_map($text) {
-
-		$separator = "\r\n";
-		$line = strtok($text, $separator);
-
-		$map = array();
-
-		while ($line !== false) {
-		    # do something with $line
-		    $attribs = explode(':', $line);
-		    //$map[$attribs[0]] = $attribs[1];
-		    $map[$attribs[0]] = $attribs[1];
-		    $line = strtok( $separator );
-		}
-
-		return $map;
-
 	}
 
 	/**
 	 * Write XML product feed to disk
+	 *
+	 * @since    1.0.0
 	 */
 	public function generate_google_products_feed() {
 
-		error_log('Generate google products feed');
+		//error_log('Generate google products feed');
+
+		// Load the WooCommerce logger
+   		wc_get_logger()->info('Generate google shopping feed', array( 'source' => 'products-feed-generator' ) );
 
 		$feed_dir = '';
 		if ( $upload_dir = wp_upload_dir() ) {
 			$feed_dir = $upload_dir['basedir'] . '/woo-products-feed-generator';
 
-			$feed_name = get_option('pfg_product_feed_name', 'google_products_feed.xml') ?: 'google_products_feed.xml';
+			$feed_name = get_option('pfg_product_feed_name', 'google_products_feed.xml');
 
 			$feed_file = $feed_dir .'/'. $feed_name;
 		} else {
@@ -559,27 +383,9 @@ class Products_Feed_Generator_Admin {
 			wp_send_json_error($error);
 		}
 
-		$WC_Shipping = new WC_Shipping();
-		$shipping_classes = $WC_Shipping->get_shipping_classes();
-		//$shipping_classes = get_terms( array('taxonomy' => 'product_shipping_class', 'hide_empty' => false ) );
+		$product_variants = get_option('pfg_product_variants', 'parent_only');
 
-		foreach ($shipping_classes as $key => $value) {
-			$this->shipping_class_map[$value->slug] = get_option("pfg_product_shipping_class_{$key}", $value->slug);
-		}
-
-		//error_log( print_r($shipping_classes, 1) );
-
-		$writer = new XMLWriter();  
-		$writer->openURI($feed_file);   
-		$writer->startDocument('1.0','UTF-8');
-		$writer->setIndent(4);
-		$writer->startElement('rss');
-		$writer->writeAttribute('version', '2.0');
-		$writer->writeAttribute('xmlns:g', 'http://base.google.com/ns/1.0');
-		$writer->startElement('channel');
-		$writer->writeElement('title', $this->bloginfo['name']);
-		$writer->writeElement('link', $this->bloginfo['url']);
-		$writer->writeElement('description', $this->bloginfo['description']);
+		$xml_writer = new Products_Feed_Generator_Google_Shopping_XML_Writer($feed_file, $product_variants);
 
 		$total_records = 100;
 
@@ -596,12 +402,6 @@ class Products_Feed_Generator_Admin {
 			wp_send_json_error($error);
 		}
 
-		$default_brand = get_option('pfg_product_brand', '');
-		$woo_currency = get_option('woocommerce_currency');
-		$woo_weight_unit = get_option('woocommerce_weight_unit');
-		$identifier_exists = get_option('pfg_product_identifieres', 'no');
-		$product_variants = get_option('pfg_product_variants', 'parent_only');
-
 		$parent_products = array();
 
 		// get parent products first
@@ -612,22 +412,13 @@ class Products_Feed_Generator_Admin {
 			$children = $product->get_children();
 			$post_title = $post->post_title;
 
-			$this->canonical_urls[$product->get_id()] = $product->get_permalink();
+			$xml_writer->add_canonical_url($product->get_id(), $product->get_permalink());
 
 			if ( $product_variants == 'parent_only' or 
 				 $product_variants == 'parent_and_variants' or
 				 count($children) == 0 ) {
 
-				$this->write_product_data( 
-					$writer, 
-					$product, 
-					$parent_desc,
-					$default_brand, 
-					$woo_currency, 
-					$woo_weight_unit, 
-					$identifier_exists, 
-					$product_variants 
-				);
+				$xml_writer->write_product_data( $product, $parent_desc );
 
 			}
 
@@ -636,59 +427,16 @@ class Products_Feed_Generator_Admin {
 				 $product_variants == 'parent_and_variants' ) {
 
 				foreach ($children as $variant_id) {
-
 					$product = wc_get_product($variant_id);
 
-					$this->write_product_data( 
-						$writer, 
-						$product, 
-						$parent_desc,
-						$default_brand, 
-						$woo_currency, 
-						$woo_weight_unit, 
-						$identifier_exists, 
-						$product_variants
-					);
+					$xml_writer->write_product_data( $product, $parent_desc );
 				}
+
 			}
 
 		}
 
-		// if ( $product_variants == 'variants_only' or $product_variants == 'parent_and_variants' ) {
-
-		// 	$params['post_type'] = 'product_variation';
-		// 	$params['posts_per_page'] = $total_records;
-
-		// 	if ( $posts = $query->query($params) ) {
-
-		// 		foreach ($posts as $post) {
-
-		// 			$product = wc_get_product($post->ID);
-		// 			$post_title = $post->post_title;
-
-		// 			if ( is_a($product, 'WC_Product_Variation') ) {
-		// 				$this->write_product_data( 
-		// 					$writer, 
-		// 					$product, 
-		// 					$post_itle,
-		// 					$default_brand, 
-		// 					$woo_currency, 
-		// 					$woo_weight_unit, 
-		// 					$identifier_exists, 
-		// 					'yes'
-		// 				);
-		// 			}
-
-		// 		}
-
-		// 	}
-
-		// }
-
-		$writer->endElement(); // end channel
-		$writer->endElement(); // end rss
-		$writer->endDocument();
-		$writer->flush();
+		$xml_writer->close(); // Close and write document to file
 
 		wp_send_json_success(array(
 	        'ready' => true
@@ -744,11 +492,12 @@ class Products_Feed_Generator_Admin {
 				setcookie("pfg_attribute_map", $json, time()+3600); // Expires in 1 hour
 			}
 
-		} 
+		}
 
 		$local_vars = array( 
 			'pluginUrl' => ( plugins_url() .'/'. $this->plugin_name ),
 			'attributes' => $filtered_attributes,
+			'attributes_map' => $this->attributes_map,
 		);
 
 		wp_localize_script( $this->plugin_name, 'jsVars', $local_vars );
