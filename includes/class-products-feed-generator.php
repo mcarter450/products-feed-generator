@@ -166,8 +166,14 @@ class Products_Feed_Generator {
 			
 			$plugin_admin = new Products_Feed_Generator_Admin( $this->get_plugin_name(), $this->get_version() );
 
-			$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-			$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+			$tab = sanitize_key( $_GET['tab'] );
+			$page = sanitize_key( $_GET['page'] );
+			$section = sanitize_key( $_GET['section'] );
+
+			if ($page == 'wc-settings' and $tab == 'products' and $section == 'pfg') {
+				$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
+				$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+			}
 
 			$this->loader->add_action( 'woocommerce_product_options_general_product_data', $plugin_admin, 'woocommerce_product_custom_fields', 10, 1);
 			$this->loader->add_filter( 'woocommerce_get_sections_products', $plugin_admin, 'woo_add_section', 10, 2 );

@@ -30,6 +30,10 @@ class Products_Feed_Generator_Deactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
+
+		if ($this->debug_log == 'yes') {
+			wc_get_logger()->info('Remove scheduled cron task', array( 'source' => 'products-feed-generator' ) );
+		}
 		wp_clear_scheduled_hook('generate_google_products_feed');
 
 		if ( $upload_dir = wp_upload_dir() ) {

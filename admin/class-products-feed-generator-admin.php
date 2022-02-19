@@ -41,10 +41,16 @@ class Products_Feed_Generator_Admin {
 	private $version;
 
 	/**
-	 * @since 	1.0.0
-	 * @var array 	Map of product attributes
-	 */	
-	protected $attributes_map = array();
+	 * @since    1.0.0
+	 * @var      string
+	 */
+	protected $debug_log;
+
+	/**
+	 * @since    1.0.0
+	 * @var      array
+	 */
+	protected $attributes_map;
 
 	/**
 	 * Initialize the class and set its properties.
@@ -58,8 +64,9 @@ class Products_Feed_Generator_Admin {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
+		$this->debug_log = get_option('pfg_product_debug_log', 'no');
 		$this->attributes_map = get_option('pfg_product_attributes_map');
-
+		
 	}
 
 	/**
@@ -95,6 +102,8 @@ class Products_Feed_Generator_Admin {
 			$feed_file = $feed_base_dir .'/'. $feed_name;
 		}
 
+		$name = __( 'Generate feed', 'products-feed-generator' );
+
 		?>
 
 		<tr valign="top">
@@ -104,19 +113,18 @@ class Products_Feed_Generator_Admin {
 			</th>
 
 			<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
-
 				<button
-				name ="<?php echo esc_attr( $value['name'] ); ?>"
-				id   ="<?php echo esc_attr( $value['id'] ); ?>"
-				type="button"
-				style="<?php echo esc_attr( $value['css'] ); ?>"
-				value="<?php echo esc_attr( $value['name'] ); ?>"
-				class="<?php echo esc_attr( $value['class'] ); ?>"
-				><?php echo esc_attr( $value['name'] ); ?></button><span class="load-icon"></span>
+					name ="<?php echo $name; ?>"
+					id   ="<?php echo esc_attr( $value['id'] ); ?>"
+					type="button"
+					style="<?php echo esc_attr( $value['css'] ); ?>"
+					value="<?php echo $name; ?>"
+					class="<?php echo esc_attr( $value['class'] ); ?>"
+				><?php echo $name ?></button><span class="load-icon"></span>
 				<?php if ( file_exists($feed_file) ): ?>
-					<a class="view-url" target="_blank" href="<?php echo $feed_url; ?>">View feed</a>
+					<a id="view_feed_url" class="view-url" target="_blank" href="<?php echo $feed_url; ?>">View feed →</a>
 				<?php else: ?>
-					<a class="view-url" style="display:none;" target="_blank" href="<?php echo $feed_url; ?>">View feed</a>
+					<a id="view_feed_url" class="view-url" style="display:none;" target="_blank" href="<?php echo $feed_url; ?>">View feed →</a>
 				<?php endif; ?>
 				<?php echo $description['description']; ?>
 
@@ -190,21 +198,23 @@ class Products_Feed_Generator_Admin {
 				'name'   => "&quot;{$value->name}&quot; class",
 				'id'     => "pfg_product_shipping_class_{$key}",
 				'type'   => 'text',
-				'desc'  => __( 'Google shipping label value', 'products-feed-generator' ), 
+				'desc_tip'  => __( 'Google shipping label value', 'products-feed-generator' ), 
 				'placeholder' => $value->slug,
 			);
 		}
 
 		$settings[] = array(
-			'name'   => __( 'XML Feed Name', 'products-feed-generator' ),
+			'name'   => __( 'Feed Name', 'products-feed-generator' ),
 			'id'     => 'pfg_product_feed_name',
 			'type'   => 'text',
+			'desc_tip'  => __( 'File name of products feed', 'products-feed-generator' ),
 			'placeholder' => 'google_products_feed.xml',
 		);
 		$settings[] = array(
 			'name'   => __( 'Cron Schedule', 'products-feed-generator' ),
 			'id'     => 'pfg_cron_schedule',
 			'type'   => 'select',
+			'desc_tip'  => __( 'The cron schedule is based on the current system time. For example you select the "Daily" schedule and save changes at 2:00 pm, the task would be scheduled to run at 2:00 pm the following day.', 'products-feed-generator' ),
 			'options' => array(
 				'daily' => __( 'Daily', 'products-feed-generator' ),
 				'twicedaily' => __( 'Twice Daily', 'products-feed-generator' ),
@@ -212,13 +222,20 @@ class Products_Feed_Generator_Admin {
 				'weekly' => __( 'Weekly', 'products-feed-generator' ),
 			),
 		);
+		
 		$settings[] = array(
-			'name' => __( 'Generate Feed' ),
+			'name' => __( 'Feed Actions', 'products-feed-generator' ),
 			'type' => 'button',
-			//'desc' => __( 'Generate Feed'),
+			'desc' => __( 'Generate or view XML feed', 'products-feed-generator'),
 			'desc_tip' => true,
-			'class' => 'button-secondary',
+			'class' => 'button-secondary btn-gen-feed',
 			'id'	=> 'generate_feed',
+		);
+		$settings[] = array(
+			'name'   => __( 'Debug Logging', 'products-feed-generator' ),
+			'id'     => 'pfg_product_debug_log',
+			'type'   => 'checkbox',
+			'desc'  => __( 'Log debug and info messages to WC status log', 'products-feed-generator' ), 
 		);
 
 		$settings[] = array( 'type' => 'sectionend', 'id' => 'pfg' );
@@ -334,7 +351,7 @@ class Products_Feed_Generator_Admin {
 	}
 
 	/**
-	 * Save custom attributes map
+	 * Save custom settings
 	 *
 	 * @since    1.0.0
 	 */
@@ -354,7 +371,30 @@ class Products_Feed_Generator_Admin {
 			}
 		}
 
+		$this->attributes_map = $attributes_map;
+
 		update_option('pfg_product_attributes_map', $attributes_map);
+
+		$cron_schedule = sanitize_key($_POST['pfg_cron_schedule']);
+
+		if ( $cron_schedule and wp_next_scheduled('generate_google_products_feed') ) {
+
+			$cron_event = wp_get_scheduled_event('generate_google_products_feed');
+			if ($cron_schedule != $cron_event->schedule) {
+				// Schedule new cron task
+				if ($this->debug_log == 'yes') {
+					wc_get_logger()->info('Update scheduled cron task', array( 'source' => 'products-feed-generator' ) );
+				}
+				wp_clear_scheduled_hook('generate_google_products_feed');
+				wp_schedule_event(time(), $cron_schedule, 'generate_google_products_feed');
+			}
+
+		} else {
+			if ($this->debug_log == 'yes') {
+				wc_get_logger()->info('Create new scheduled cron task', array( 'source' => 'products-feed-generator' ) );
+			}
+			wp_schedule_event(time(), $cron_schedule, 'generate_google_products_feed');
+		}
 		
 	}
 
@@ -365,10 +405,10 @@ class Products_Feed_Generator_Admin {
 	 */
 	public function generate_google_products_feed() {
 
-		//error_log('Generate google products feed');
-
 		// Load the WooCommerce logger
-   		wc_get_logger()->info('Generate google shopping feed', array( 'source' => 'products-feed-generator' ) );
+		if ($this->debug_log == 'yes') {
+			wc_get_logger()->info('Generate google shopping feed', array( 'source' => 'products-feed-generator' ) );
+		}
 
 		$feed_dir = '';
 		if ( $upload_dir = wp_upload_dir() ) {
@@ -415,8 +455,7 @@ class Products_Feed_Generator_Admin {
 			$xml_writer->add_canonical_url($product->get_id(), $product->get_permalink());
 
 			if ( $product_variants == 'parent_only' or 
-				 $product_variants == 'parent_and_variants' or
-				 count($children) == 0 ) {
+				 $product_variants == 'parent_and_variants' ) {
 
 				$xml_writer->write_product_data( $product, $parent_desc );
 

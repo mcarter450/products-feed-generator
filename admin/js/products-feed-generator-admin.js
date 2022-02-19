@@ -4,11 +4,26 @@
 	/**
 	 * Array of all added options
 	 *
+	 * @since 1.0.0
 	 * @type {object}
 	 */
 	var added_options = [];
 
 	/**
+	 * Array of google custom fields
+	 *
+	 * @since 1.0.0
+	 * @type {object}
+	 */
+	var google_fields = {
+		'size': 'Google: Size',
+		'color': 'Google: Color',
+		'material': 'Google: Material',
+		'pattern': 'Google: Pattern'
+	};
+
+	/**
+	 * @since 1.0.0
 	 * @param {string} options
 	 * @return {string} The html with template vars applied
 	 */
@@ -26,9 +41,9 @@
 				<select name="pfg_product_attributes_val" id="pfg_product_attributes_val" style="width:200px;">
 					${attrib_options}
 				</select><br>
-				<button id="add_attribute_mapping">Add mapping</button>
+				<button id="add_attribute_mapping" class="button-secondary btn-add-mapping">Add mapping</button>
 				<!--p class="description">Google field</p-->
-				<div id="attrib_map"
+				<div id="attrib_map">
 					${attrib_map}
 				</div>
 			</td>
@@ -39,16 +54,19 @@
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param {string} key
 	 * @param {string} val
 	 * @return {string} The html with template vars applied
 	 */
 	function get_attribute_template(key, val) {
 
+		let label = jsVars.attributes[val];
+
 		let html = `
-		<div id="${key}-${val}" data-key="${key}">
+		<div id="${key}-${val}" data-key="${key}" class="attrib-set">
 			<input type="hidden" name="attrib_map_${key}" name="attrib_map_${key}" value="${val}">
-			<span class="field">${key}</span> -> <span class="attrib">${val}</span>
+			<span class="field">${google_fields[key]}</span> \u2192 <span class="attrib">${label}</span>
 			<button id="del_attribute_mapping_${key}">Delete</button>
 		</div>`;
 
@@ -57,6 +75,7 @@
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param {object} e 	jQuery event object
 	 * @return {boolean} False to prevent event from bubbling
 	 */
@@ -84,10 +103,13 @@
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param {object} e 	jQuery event object
 	 * @return {boolean} False to prevent event from bubbling
 	 */
 	function click_add_attribute_mapping(e) {
+
+		$(this).blur();
 
 		let key = $('#pfg_product_attributes_key').val();
 		let val = $('#pfg_product_attributes_val').val();
@@ -113,6 +135,7 @@
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param {object} e 	jQuery event object
 	 */
 	function click_generate_feed(e) {
@@ -126,7 +149,9 @@
 
 		let $spinner = $('<img src="'+ pluginUrl +'/admin/images/spinner-3.gif">');
 
-		let $load_icon = $(this).next('.load-icon').append($spinner);
+		var $btn_el = $(this).prop('disabled', true);
+
+		let $load_icon = $btn_el.next('.load-icon').append($spinner);
 		let $view_url = $load_icon.next('.view-url');
 
 		$load_icon.text(''); // Clear any error messages
@@ -134,21 +159,25 @@
 
 		// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
 		$.post(ajaxurl, data, function(response) {
-			//console.log(response);
+
 			$spinner.remove();
-			if ( response.success ) {
-				$view_url.css('display', 'inline');
+			$btn_el.blur().prop('disabled', false);
+			if (response.success) {
+				$view_url.show();
 			}
 			else {
 				let error = response.data.shift()
 				$load_icon.text( 'Error: '+ error.message );
 			}
+			
 		});
 
 	}
 
 	/**
 	 * Handle dom ready event
+	 *
+	 * @since 1.0.0
 	 */
 	jQuery(document).ready(function($) {
 
@@ -156,22 +185,13 @@
 		let google_options = '';
 		let attrib_map = '';
 
-		let google_fields = {
-			'size': 'Google: Size',
-			'color': 'Google: Color',
-			'material': 'Google: Material',
-			'pattern': 'Google: Pattern'
-		};
-
 		var attributes_map = jsVars.attributes_map;
 
 		for (let key in google_fields) {
 			if (attributes_map[key]) {
-
 				attrib_map += get_attribute_template(key, attributes_map[key]);
 
 				google_options += `<option value="${key}" disabled="disabled">${google_fields[key]}</option>`;
-
 			} else {
 				google_options += `<option value="${key}">${google_fields[key]}</option>`;
 			}
@@ -187,7 +207,10 @@
 		$attribute_map_template.find('[id^=del_attribute_mapping_]').on('click', click_del_attribute_mapping);
 
 		$('#pfg_product_material').closest('tr').after($attribute_map_template);
-		
+		$('#view_feed_url').on('click', function(e) {
+			o
+			$(this).blur();
+		});
 		$('#generate_feed').on('click', click_generate_feed);
 		
 	});

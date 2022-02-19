@@ -5,3 +5,74 @@
 #woocommerce-product-data .woocommerce_options_panel .form-field._product_condition_field .wc-radios label {
 	margin-left: 0;
 }
+
+.form-table td fieldset li {
+	margin-bottom: 0;
+}
+
+.button-secondary.btn-add-mapping {
+	margin-top: 5px;
+}
+
+.button-secondary.btn-gen-feed {
+	vertical-align: initial;
+}
+
+.view-url {
+	margin-left: 15px;
+}
+
+.load-icon {
+	display: inline-block;
+	min-width: 30px;
+	vertical-align: middle;
+	padding-left: 15px;
+	color: red;
+}
+
+.load-icon img {
+	max-height: 25px;
+}
+
+#attrib_map {
+	margin-top: 15px;
+}
+
+#attrib_map .attrib-set {
+	width: 400px;
+    background-color: #00aadc;
+    color: white;
+    height: 25px;
+    border-radius: 10px;
+    margin: 5px 0;
+    padding: 5px 0;
+}
+
+#attrib_map .attrib-set .field {
+	display: inline-block;
+	margin-left: 25px;
+	width: 125px;
+}
+
+#attrib_map .attrib-set .attrib {
+	display: inline-block;
+	width: 150px;
+	padding-left: 5px;
+}
+
+#attrib_map .attrib-set button {
+	box-shadow: 0 1px 0 #0087be;
+	text-shadow: none;
+	background-color: #0087be;
+	border-style: solid;
+	border-color: #0087be;
+	/*border-width: 1px;*/
+	border-radius: 3px;
+	color: #fff;
+	cursor: pointer;
+}
+
+#attrib_map .attrib-set button:hover {
+	/*background-color: #fff;*/
+	filter: brightness(1.1);
+}
