@@ -10,28 +10,27 @@
 	margin-bottom: 0;
 }
 
-.button-secondary.btn-add-mapping {
-	margin-top: 5px;
+#attrib_widget {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+	width: 400px;
 }
 
-.button-secondary.btn-gen-feed {
-	vertical-align: initial;
+#attrib_widget #pfg_product_attributes_key {
+	flex-basis: 50%;
 }
 
-.view-url {
-	margin-left: 15px;
+#attrib_widget #pfg_product_attributes_val {
+	flex-basis: 50%;
+	margin-left: 3px;
 }
 
-.load-icon {
+#attrib_widget button {
 	display: inline-block;
-	min-width: 30px;
-	vertical-align: middle;
-	padding-left: 15px;
-	color: red;
-}
-
-.load-icon img {
-	max-height: 25px;
+	margin-left: 5px;
+	font-size: 14px;
+	line-height: 32px;
 }
 
 #attrib_map {
@@ -39,6 +38,9 @@
 }
 
 #attrib_map .attrib-set {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
 	width: 400px;
     background-color: #00aadc;
     color: white;
@@ -50,14 +52,14 @@
 
 #attrib_map .attrib-set .field {
 	display: inline-block;
-	margin-left: 25px;
-	width: 125px;
+	margin-left: 15px;
+	flex-basis: 50%;
 }
 
 #attrib_map .attrib-set .attrib {
 	display: inline-block;
-	width: 150px;
 	padding-left: 5px;
+	flex-basis: 50%;
 }
 
 #attrib_map .attrib-set button {
@@ -66,13 +68,78 @@
 	background-color: #0087be;
 	border-style: solid;
 	border-color: #0087be;
-	/*border-width: 1px;*/
+	margin-right: 10px;
 	border-radius: 3px;
 	color: #fff;
 	cursor: pointer;
 }
 
+@media only screen and (max-width:782px) {
+
+	#attrib_widget {
+		width: 100%;
+	}
+
+	#attrib_map .attrib-set {
+		width: 100%;
+	}
+
+	#attrib_map .attrib-set .field {
+		margin-left: 10px;
+	}
+
+}
+
 #attrib_map .attrib-set button:hover {
-	/*background-color: #fff;*/
 	filter: brightness(1.1);
 }
+
+#feed_management {
+	display: flex;
+	justify-content: space-around;
+	align-items: stretch;
+	width: 400px;
+	height: 34px;
+}
+
+#feed_management button {
+	font-size: 14px;
+	line-height: 32px;
+	max-height: 34px;
+}
+
+#feed_management .view-feed {
+	flex-grow: 1;
+	line-height: 32px;
+	text-align: right;
+}
+
+#feed_management .view-url {
+	padding-right: 10px;
+}
+
+#feed_management .load-icon {
+	display: inline-block;
+	padding-left: 15px;
+}
+
+#feed_management .load-icon > img {
+	max-width: 34px;
+	max-height: 34px;
+}
+
+#feed_management_error {
+	width: 400px;
+	color: red;
+}
+
+@media only screen and (max-width:782px) {
+
+	#feed_management,
+	#feed_management_error {
+		width: 100%;
+	}
+
+}
+
+

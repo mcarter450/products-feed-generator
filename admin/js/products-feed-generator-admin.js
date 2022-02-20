@@ -2,14 +2,6 @@
 	'use strict';
 
 	/**
-	 * Array of all added options
-	 *
-	 * @since 1.0.0
-	 * @type {object}
-	 */
-	var added_options = [];
-
-	/**
 	 * Array of google custom fields
 	 *
 	 * @since 1.0.0
@@ -29,19 +21,25 @@
 	 */
 	function get_attribute_map_template(google_options, attrib_options, attrib_map) {
 
+		let google_options_disabled = google_options ? '' : 'disabled="disabled"';
+		let attrib_options_disabled = attrib_options ? '' : 'disabled="disabled"';
+		let add_attrib_disabled = (google_options || attrib_options) ? '' : 'disabled="disabled"';
+
 		let html =`
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label>Attribute map</label>
+				<label>Attribute Map</label>
 			</th>
 			<td class="forminp forminp-text">
-				<select name="pfg_product_attributes_key" id="pfg_product_attributes_key" style="width:200px;">
-					${google_options}
-				</select>
-				<select name="pfg_product_attributes_val" id="pfg_product_attributes_val" style="width:200px;">
-					${attrib_options}
-				</select><br>
-				<button id="add_attribute_mapping" class="button-secondary btn-add-mapping">Add mapping</button>
+				<div id="attrib_widget">
+					<select name="pfg_product_attributes_key" id="pfg_product_attributes_key" ${google_options_disabled}>
+						${google_options}
+					</select>
+					<select name="pfg_product_attributes_val" id="pfg_product_attributes_val" ${attrib_options_disabled}>
+						${attrib_options}
+					</select>
+					<button id="add_attribute_mapping" class="button-secondary btn-add-mapping" ${add_attrib_disabled}>Add mapping</button>
+				</div>
 				<!--p class="description">Google field</p-->
 				<div id="attrib_map">
 					${attrib_map}
@@ -64,13 +62,29 @@
 		let label = jsVars.attributes[val];
 
 		let html = `
-		<div id="${key}-${val}" data-key="${key}" class="attrib-set">
+		<div data-key="${key}" data-val="${val}" class="attrib-set">
 			<input type="hidden" name="attrib_map_${key}" name="attrib_map_${key}" value="${val}">
 			<span class="field">${google_fields[key]}</span> \u2192 <span class="attrib">${label}</span>
 			<button id="del_attribute_mapping_${key}">Delete</button>
 		</div>`;
 
 		return html;
+
+	}
+
+	function add_options(key, val) {
+
+		let $attrib_keys = $('#pfg_product_attributes_key');
+		let $attrib_vals = $('#pfg_product_attributes_val');
+
+		$attrib_keys.append(`<option value="${key}">${google_fields[key]}</option>`);
+		$attrib_vals.append(`<option value="${val}">${jsVars.attributes[val]}</option>`);
+
+		if ( $attrib_keys.children('option').length > 0 ) {
+			$attrib_keys.prop('disabled', false);
+			$attrib_vals.prop('disabled', false);
+			$('#add_attribute_mapping').prop('disabled', false);
+		}
 
 	}
 
@@ -84,17 +98,9 @@
 		let parent = $(this).parent();
 
 		let key = parent.data('key');
+		let val = parent.data('val');
 
-		if (added_options.indexOf(key) != -1) {
-			delete added_options[key];
-		}
-
-		$('#pfg_product_attributes_key > option').each(function(i) {
-			let option = $(this);
-			if (key == option.val()) {
-				$(this).prop('disabled', false);
-			}
-		});
+		add_options(key, val);
 
 		parent.fadeOut(300, function() { $(this).remove(); });
 
@@ -111,18 +117,27 @@
 
 		$(this).blur();
 
-		let key = $('#pfg_product_attributes_key').val();
-		let val = $('#pfg_product_attributes_val').val();
+		let $key_option = $('#pfg_product_attributes_key > :selected');
+		let $val_option = $('#pfg_product_attributes_val > :selected');
+
+		let key = $key_option.val();
+		let val = $val_option.val();
 
 		if (key === null) {
 			return false;
 		}
 
-		if (added_options.indexOf(key) == -1) {
-			added_options.push(key);
-		}
+		$key_option.remove();
+		$val_option.remove();
 
-		$('#pfg_product_attributes_key > :selected').prop('disabled', true);
+		let $attrib_keys = $('#pfg_product_attributes_key');
+		let $attrib_vals = $('#pfg_product_attributes_val');
+
+		if ( $attrib_keys.children('option').length == 0 ) {
+			$attrib_keys.prop('disabled', true);
+			$attrib_vals.prop('disabled', true);
+			$('#add_attribute_mapping').prop('disabled', true);
+		}
 
 		let $attrib = $(get_attribute_template(key, val));
 
@@ -151,10 +166,13 @@
 
 		var $btn_el = $(this).prop('disabled', true);
 
+		let $feed_error = $('#feed_management_error');
+
 		let $load_icon = $btn_el.next('.load-icon').append($spinner);
 		let $view_url = $load_icon.next('.view-url');
 
-		$load_icon.text(''); // Clear any error messages
+		$feed_error.text(''); // Clear any error messages
+		$feed_error.css('padding', '0px');
 		$load_icon.append($spinner);
 
 		// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
@@ -166,8 +184,9 @@
 				$view_url.show();
 			}
 			else {
-				let error = response.data.shift()
-				$load_icon.text( 'Error: '+ error.message );
+				let error = response.data.shift();
+				$feed_error.css('padding', '15px 0px');
+				$feed_error.text( 'Error: '+ error.message );
 			}
 			
 		});
@@ -187,18 +206,21 @@
 
 		var attributes_map = jsVars.attributes_map;
 
-		for (let key in google_fields) {
-			if (attributes_map[key]) {
-				attrib_map += get_attribute_template(key, attributes_map[key]);
+		const attributes_map_rev = Object.entries(attributes_map)
+			.reduce((obj, [key, value]) => ({ ...obj, [value]: key }), {});
 
-				google_options += `<option value="${key}" disabled="disabled">${google_fields[key]}</option>`;
+		for (let key in google_fields) {
+			if ( attributes_map[key] ) {
+				attrib_map += get_attribute_template(key, attributes_map[key]);
 			} else {
 				google_options += `<option value="${key}">${google_fields[key]}</option>`;
 			}
 		}
 
 		for (let key in jsVars.attributes) {
-			attrib_options += `<option value="${key}">${jsVars.attributes[key]}</option>`;
+			if (! attributes_map_rev[key] ) {
+				attrib_options += `<option value="${key}">${jsVars.attributes[key]}</option>`;
+			}
 		}
 
 		let $attribute_map_template = $(get_attribute_map_template(google_options, attrib_options, attrib_map));
@@ -208,7 +230,6 @@
 
 		$('#pfg_product_material').closest('tr').after($attribute_map_template);
 		$('#view_feed_url').on('click', function(e) {
-			o
 			$(this).blur();
 		});
 		$('#generate_feed').on('click', click_generate_feed);

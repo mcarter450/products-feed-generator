@@ -108,26 +108,32 @@ class Products_Feed_Generator_Admin {
 
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<label for="<?php echo esc_attr( $value['id'] ); ?>"><?php echo esc_html( $value['title'] ); ?></label>
-				<?php echo $description['tooltip_html']; ?>
+				<label for="<?php echo esc_attr( $value['id'] ); ?>">
+					<?php echo esc_html( $value['title'] ); ?>
+					<?php echo $description['tooltip_html']; ?>
+				</label>
 			</th>
-
 			<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
-				<button
-					name ="<?php echo $name; ?>"
-					id   ="<?php echo esc_attr( $value['id'] ); ?>"
-					type="button"
-					style="<?php echo esc_attr( $value['css'] ); ?>"
-					value="<?php echo $name; ?>"
-					class="<?php echo esc_attr( $value['class'] ); ?>"
-				><?php echo $name ?></button><span class="load-icon"></span>
-				<?php if ( file_exists($feed_file) ): ?>
-					<a id="view_feed_url" class="view-url" target="_blank" href="<?php echo $feed_url; ?>">View feed →</a>
-				<?php else: ?>
-					<a id="view_feed_url" class="view-url" style="display:none;" target="_blank" href="<?php echo $feed_url; ?>">View feed →</a>
-				<?php endif; ?>
-				<?php echo $description['description']; ?>
-
+				<div id="feed_management">
+					<button
+						name ="<?php echo $name; ?>"
+						id   ="<?php echo esc_attr( $value['id'] ); ?>"
+						type="button"
+						style="<?php echo esc_attr( $value['css'] ); ?>"
+						value="<?php echo $name; ?>"
+						class="<?php echo esc_attr( $value['class'] ); ?>"
+					><?php echo $name ?></button>
+					<span class="load-icon"></span>
+					<span class="view-feed">
+						<?php if ( file_exists($feed_file) ): ?>
+							<a id="view_feed_url" class="view-url" target="_blank" href="<?php echo $feed_url; ?>">View feed →</a>
+						<?php else: ?>
+							<a id="view_feed_url" class="view-url" style="display:none;" target="_blank" href="<?php echo $feed_url; ?>">View feed →</a>
+						<?php endif; ?>
+						<?php echo $description['description']; ?>
+					</span>
+				</div>
+				<div id="feed_management_error"></div>
 			</td>
 		</tr>
 
