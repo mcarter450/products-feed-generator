@@ -41,14 +41,6 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 	protected $attributes_map = array();
 
 	/**
-	 * Reverse map of product attributes 
-	 *
-	 * @since 	1.0.0
-	 * @var array 	
-	 */	
-	protected $attributes_map_rev = array();
-
-	/**
 	 * Map of shipping classes 
 	 *
 	 * @since 	1.0.0
@@ -97,6 +89,14 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 	protected $product_variants;
 
 	/**
+	 * Show product details (yes|no)
+	 *
+	 * @since 	1.0.0
+	 * @var string
+	 */	
+	protected $product_details_section;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $feed_file
@@ -117,12 +117,13 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 		$this->woo_weight_unit = get_option('woocommerce_weight_unit', '');
 		$this->identifier_exists = get_option('pfg_product_identifiers', 'no');
 		$this->product_variants = $product_variants = get_option('pfg_product_variants', 'parent_only');
+		$this->product_details_section =  get_option('pfg_product_details_section', 'no');
 
-		$this->attributes_map = get_option('pfg_product_attributes_map');
-		$this->attributes_map_rev = array_flip($this->attributes_map);
+		$attributes_map = get_option('pfg_product_attributes_map');
+		$this->attributes_map = $attributes_map['reverse'];
 		$this->build_shipping_class_map();
 
-		$this->writer = $writer = new XMLWriter();  
+		$this->writer = $writer = new XMLWriter(); 
 		$writer->openURI($feed_file);   
 		$writer->startDocument('1.0','UTF-8');
 		$writer->setIndent(4);
@@ -180,7 +181,7 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 	 * @param string $value
 	 * @return void
 	 */
-	public function write_product_details( $attribute, $value ) {
+	protected function write_product_details( $attribute, $value ) {
 
 		$writer = $this->writer;
 
@@ -195,6 +196,25 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 		$writer->endElement(); // end product_detail
 
 	}
+
+	protected function get_variation_title( $product, $title, &$attributes ) {
+
+		foreach ($attributes as $key => $value) {
+			$attribute = $value;
+			if ( is_scalar($value) && !empty($value) ) {
+				if ( stripos($key, 'pa_') !== false ) {
+					$attribute = $product->get_attribute($key);
+					$attributes[$key] = $attribute;
+				}
+				$title .= " - {$attribute}"; 
+			}
+		}
+
+		return $title;
+
+	}
+
+
 
 	/**
 	 * Write XML for product data
@@ -248,7 +268,7 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 			}
 		}
 
-		// Obtain custom meta data for from parent product
+		// Obtain custom meta data from parent product
 		if ( $this->product_variants == 'variants_only' and isset($parent_product) ) {
 			$description = $parent_product->get_description();
 			$google_category = $parent_product->get_meta('_product_google_category') ?: '';
@@ -273,12 +293,8 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 
 		$title = $product->get_title();
 
-		foreach ($attributes as $key => $value) {
-			//error_log( print_r($value, 1) );
-			if ( is_scalar($value) && !empty($value) ) {
-				$title .= " - {$value}"; 
-			}
-		}
+		// $attributes is amended by reference
+		$title = $this->get_variation_title($product, $title, $attributes);
 
 		// Get Google product thumbnail override or default to featured image 
 		$image_link = $product->get_meta('_product_image_thumbnail') ?: wp_get_attachment_url( $product->get_image_id() );
@@ -326,7 +342,6 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 			$attachment_images = array_slice($attachment_images, 0, 10);
 			foreach ($attachment_images as $attachment_id) {
 				$image_link = wp_get_attachment_image_src($attachment_id, 'woocommerce_single')[0];
-				//$image_links[] = htmlspecialchars($image_link);
 				$writer->writeElement('g:additional_image_link', $image_link);
 			}
 		}
@@ -334,25 +349,47 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 		// Map any custom attributes
 		foreach ($attributes as $key => $attribute) {
 
-			if ( is_object($attribute) ) {
-				if ( isset($this->attributes_map_rev[$key]) && $this->attributes_map_rev[$key] == 'material') {
-					$options = $attribute->get_options();
+			$global_key = '';
+			if ( stripos($key, 'pa_') !== false ) {
+				$global_key = substr($key, strlen('pa_'));
+			}
 
-					if ($this->default_material) {
-						array_unshift($options, $this->default_material);
+			if ( is_object($attribute) and is_a($product, 'WC_Product') ) {
+
+				$label = $attr_name = $attribute->get_name();
+				$options = $attribute->get_options();
+
+				// Handle global attributes or taxonomies 
+				if ( stripos($attr_name, 'pa_') !== false ) {
+					$label = wc_attribute_label($attr_name);
+					$options = $product->get_attribute($attr_name);
+
+					$global_key = substr($attr_name, strlen('pa_'));
+
+					if ( isset($this->attributes_map[$global_key]) && $this->attributes_map[$global_key] == 'material') {
+						if ($this->default_material) {
+							$options = $this->default_material . ", {$options}";
+						}
+						$materials = preg_replace('/[ ]*,[ ]*/i', '/', $options);
+
+						$writer->writeElement('g:material', $materials);
 					}
-					$materials = implode( '/', $options );
 
-					$writer->writeElement('g:material', $materials);
 				} 
-				else {
-					$options = implode( ', ', $attribute->get_options() );
-
-					$this->write_product_details($attribute->get_name(), $options);
+				// Handle product level only (unmapped) attributes
+				elseif ( is_array($options) ) {
+					$options = implode( ', ', $options );
 				}
+
+				// Writes both mapped and unmapped attributes to product details section
+				if ( $this->product_details_section == 'yes' ) {
+					$this->write_product_details($label, $options);
+				}
+
 			} 
-			elseif ( isset($this->attributes_map_rev[$key]) ) {
-				$gfield = $this->attributes_map_rev[$key];
+			elseif ( isset($this->attributes_map[$global_key]) ) {
+				// Variation for global product attribute
+				$gfield = $this->attributes_map[$global_key];
 
 				if ($gfield == 'material') {
 					$material = $this->default_material ?  "{$this->default_material}/$attribute" : $attribute;
@@ -361,9 +398,6 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 				else {
 					$writer->writeElement("g:{$gfield}", $attribute);
 				}
-			} 
-			else {
-				$this->write_product_details(ucfirst($key), $attribute);
 			}
 
 		}

@@ -23,9 +23,7 @@
 	 */
 	function get_attribute_map_template(google_options, attrib_options, attrib_map) {
 
-		let google_options_disabled = google_options ? '' : 'disabled="disabled"';
-		let attrib_options_disabled = attrib_options ? '' : 'disabled="disabled"';
-		let add_attrib_disabled = (google_options || attrib_options) ? '' : 'disabled="disabled"';
+		let disabled = (google_options && attrib_options) ? '' : 'disabled="disabled"';
 
 		let html =`
 		<tr valign="top">
@@ -34,13 +32,13 @@
 			</th>
 			<td class="forminp forminp-text">
 				<div id="attrib_widget">
-					<select name="pfg_product_attributes_key" id="pfg_product_attributes_key" ${google_options_disabled}>
+					<select name="pfg_product_attributes_key" id="pfg_product_attributes_key" ${disabled}>
 						${google_options}
 					</select>
-					<select name="pfg_product_attributes_val" id="pfg_product_attributes_val" ${attrib_options_disabled}>
+					<select name="pfg_product_attributes_val" id="pfg_product_attributes_val" ${disabled}>
 						${attrib_options}
 					</select>
-					<button id="add_attribute_mapping" class="button-secondary btn-add-mapping" ${add_attrib_disabled}>Add mapping</button>
+					<button id="add_attribute_mapping" class="button-secondary btn-add-mapping" ${disabled}>Add mapping</button>
 				</div>
 				<!--p class="description">Google field</p-->
 				<div id="attrib_map">
@@ -65,7 +63,7 @@
 			return '';
 		}
 
-		let label = jsVars.attributes[val].attribute_label;
+		let label = jsVars.attributes[val];
 
 		let html = `
 		<div data-key="${key}" data-val="${val}" class="attrib-set">
@@ -78,13 +76,20 @@
 
 	}
 
+	/**
+	 * @since 1.0.0
+	 * @param {string} key
+	 * @param {string} val
+	 */
 	function add_options(key, val) {
 
 		let $attrib_keys = $('#pfg_product_attributes_key');
 		let $attrib_vals = $('#pfg_product_attributes_val');
 
+		let label = jsVars.attributes[val];
+
 		$attrib_keys.append(`<option value="${key}">${google_fields[key]}</option>`);
-		$attrib_vals.append(`<option value="${val}">${jsVars.attributes[val]}</option>`);
+		$attrib_vals.append(`<option value="${val}">${label}</option>`);
 
 		if ( $attrib_keys.children('option').length > 0 ) {
 			$attrib_keys.prop('disabled', false);
@@ -139,13 +144,13 @@
 		let $attrib_keys = $('#pfg_product_attributes_key');
 		let $attrib_vals = $('#pfg_product_attributes_val');
 
-		if ( $attrib_keys.children('option').length == 0 ) {
+		if ( $attrib_keys.children('option').length == 0 || $attrib_vals.children('option').length == 0 ) {
 			$attrib_keys.prop('disabled', true);
 			$attrib_vals.prop('disabled', true);
 			$('#add_attribute_mapping').prop('disabled', true);
 		}
 
-		let $attrib = $(get_attribute_template(key, val));
+		let $attrib = $( get_attribute_template(key, val) );
 
 		$attrib.find(`#del_attribute_mapping_${key}`).on('click', click_del_attribute_mapping);
 
@@ -168,24 +173,25 @@
 
 		let pluginUrl = jsVars.pluginUrl;
 
+		var $btn_el = $(this).prop('disabled', true);
+
 		let $spinner = $('<img src="'+ pluginUrl +'/admin/images/spinner-3.gif">');
 
-		var $btn_el = $(this).prop('disabled', true);
+		let $load_icon = $btn_el.next('.load-icon').append($spinner);
+
+		let $view_url = $load_icon.next('.view-url');
 
 		let $feed_error = $('#feed_management_error');
 
-		let $load_icon = $btn_el.next('.load-icon').append($spinner);
-		let $view_url = $load_icon.next('.view-url');
-
 		$feed_error.text(''); // Clear any error messages
 		$feed_error.css('padding', '0px');
-		$load_icon.append($spinner);
 
 		// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
 		$.post(ajaxurl, data, function(response) {
 
 			$spinner.remove();
 			$btn_el.blur().prop('disabled', false);
+
 			if (response.success) {
 				$view_url.show();
 			}
@@ -210,14 +216,16 @@
 		let google_options = '';
 		let attrib_map = '';
 
-		var attributes_map = jsVars.attributes_map;
+		let attributes_map = {};
+		let attributes_map_rev = {};
 
-		const attributes_map_rev = Object.entries(attributes_map)
-			.reduce((obj, [key, value]) => ({ ...obj, [value]: key }), {});
+		if (jsVars.attributes_map && jsVars.attributes_map.count) {
+			attributes_map = jsVars.attributes_map.forward;
+			attributes_map_rev = jsVars.attributes_map.reverse;
+		}
 
 		for (let key in google_fields) {
 			if ( attributes_map[key] ) {
-				console.log(attributes_map[key]);
 				attrib_map += get_attribute_template(key, attributes_map[key]);
 			} else {
 				google_options += `<option value="${key}">${google_fields[key]}</option>`;
@@ -225,13 +233,12 @@
 		}
 
 		for (let key in jsVars.attributes) {
-			let attr = jsVars.attributes[key];
-			if (! attributes_map_rev[attr.attribute_name] ) {
-				attrib_options += `<option value="${key}">${attr.attribute_label}</option>`;
+			if (! attributes_map_rev[key] ) {
+				attrib_options += `<option value="${key}">${jsVars.attributes[key]}</option>`;
 			}
 		}
 
-		let $attribute_map_template = $(get_attribute_map_template(google_options, attrib_options, attrib_map));
+		let $attribute_map_template = $( get_attribute_map_template(google_options, attrib_options, attrib_map) );
 
 		$attribute_map_template.find('#add_attribute_mapping').on('click', click_add_attribute_mapping);
 		$attribute_map_template.find('[id^=del_attribute_mapping_]').on('click', click_del_attribute_mapping);

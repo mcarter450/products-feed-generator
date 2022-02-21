@@ -52,6 +52,10 @@ class Products_Feed_Generator_Admin {
 	 */
 	protected $attributes_map;
 
+	/**
+	 * @since    1.0.0
+	 * @var      string
+	 */
 	protected $product_identifiers;
 
 	/**
@@ -181,6 +185,12 @@ class Products_Feed_Generator_Admin {
 			'desc'  => __( 'Include unique identifiers (GTIN, mpn) on product edit page', 'products-feed-generator' ), 
 		);
 		$settings[] = array(
+			'name'   => __( 'Product Details', 'products-feed-generator' ),
+			'id'     => 'pfg_product_details_section',
+			'type'   => 'checkbox',
+			'desc'  => __( 'Show list of attributes in product detail section', 'products-feed-generator' ),
+		);
+		$settings[] = array(
 			'name'   => __( 'Product Variants', 'products-feed-generator' ),
 			'id'     => 'pfg_product_variants',
 			'type'   => 'radio',
@@ -189,14 +199,16 @@ class Products_Feed_Generator_Admin {
 				'parent_and_variants' => __( 'Parent products + Variations', 'products-feed-generator' ),
 				'variants_only' => __( 'Variations only', 'products-feed-generator' ),
 			),
+			'desc_tip' => 'Including the parent product is highly recommended',
 			//'desc'  => __( 'Include product variations in feeds', 'products-feed-generator' ), 
 		);
 		$settings[] = array(
 			'name'   => __( 'Default Material', 'products-feed-generator' ),
 			'id'     => 'pfg_product_material',
 			'type'   => 'text',
-			'placeholder' => 'wood',
-			'desc' => __( 'Default material to include with each product', 'products-feed-generator' ),
+			'placeholder' => 'Plastic',
+			'desc' => __( 'Default material to include with mapped attribute', 'products-feed-generator' ),
+			'desc_tip' => __( 'Is the "Google: Material" field mapped to an attribute?', 'products-feed-generator' ),
 		);
 
 		$WC_Shipping = new WC_Shipping();
@@ -235,7 +247,7 @@ class Products_Feed_Generator_Admin {
 		$settings[] = array(
 			'name' => __( 'Feed Actions', 'products-feed-generator' ),
 			'type' => 'button',
-			'desc' => __( 'Generate or view XML feed', 'products-feed-generator'),
+			'desc' => __( 'Generate or view XML feed, be sure to save changes first', 'products-feed-generator'),
 			'desc_tip' => true,
 			'class' => 'button-secondary btn-gen-feed',
 			'id'	=> 'generate_feed',
@@ -259,7 +271,7 @@ class Products_Feed_Generator_Admin {
 	 * @since    1.0.0
 	 */
 	public function woo_custom_fields() {
-		
+
 		echo '<fieldset class="product_feed_settings">';
 
 		echo '<legend>'. __('Product Feed Generator Settings', 'products-feed-generator') .'</legend>';
@@ -431,6 +443,13 @@ class Products_Feed_Generator_Admin {
 					$attributes_map[$attribkey] = $attribval;
 				}
 			}
+			if ( $count = sizeof($attributes_map) ) {
+				$attributes_map = array(
+					'count' => $count,
+					'forward' => $attributes_map,
+					'reverse' => array_flip($attributes_map),
+				);
+			}
 		}
 
 		$this->attributes_map = $attributes_map;
@@ -471,16 +490,21 @@ class Products_Feed_Generator_Admin {
 	public function woo_attribute_deleted( $id,  $name,  $taxonomy ) {
 
 		$attributes_map = get_option('pfg_product_attributes_map');
+		$attributes_map_rev = $attributes_map['reverse'];
 
-		$delete = false;
-		foreach ($attributes_map as $key => $attrval) {
-			if ($attrval == "id:{$id}") {
-				unset($attributes_map[$key]);
-				$delete = true;
+		$dirty = false;
+		foreach ($attributes_map_rev as $key => $attrval) {
+			if ($key == $name) {
+				unset($attributes_map['reverse'][$key]);
+				unset($attributes_map['forward'][$attrval]);
+				if ( $attributes_map['count'] > 0 ) {
+					$attributes_map['count']--;
+				}
+				$dirty = true;
 			}
 		}
 
-		if ($delete) {
+		if ($dirty) {
 			update_option('pfg_product_attributes_map', $attributes_map);
 		}
 
@@ -598,7 +622,7 @@ class Products_Feed_Generator_Admin {
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/products-feed-generator-admin.js', array( 'jquery' ), $this->version, false );
 
-		$attributes = wc_get_attribute_taxonomies();
+		$attributes = wc_get_attribute_taxonomy_labels();
 
 		$local_vars = array( 
 			'pluginUrl' => ( plugins_url() .'/'. $this->plugin_name ),
