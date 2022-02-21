@@ -115,7 +115,7 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 		$this->default_material = get_option('pfg_product_material', '');
 		$this->woo_currency = get_option('woocommerce_currency', '');
 		$this->woo_weight_unit = get_option('woocommerce_weight_unit', '');
-		$this->identifier_exists = get_option('pfg_product_identifieres', 'no');
+		$this->identifier_exists = get_option('pfg_product_identifiers', 'no');
 		$this->product_variants = $product_variants = get_option('pfg_product_variants', 'parent_only');
 
 		$this->attributes_map = get_option('pfg_product_attributes_map');
@@ -201,10 +201,10 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 	 *
 	 * @param XMLWriter $writer
 	 * @param WC_Product|WC_Product_Variation $product
-	 * @param string $parent_desc
+	 * @param WC_Product $parent_product
 	 * @return void
 	 */
-	public function write_product_data( $product, $parent_desc ) {
+	public function write_product_data( $product, $parent_product = null ) {
 
 		$writer = $this->writer;
 
@@ -212,7 +212,7 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 		
 		$link = $product->get_permalink();
 
-		$description = $product->get_description() ?: $parent_desc;
+		$description = $product->get_description();
 
 		$price = '';
 		$sale_price = '';
@@ -234,7 +234,7 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 			$availability = 'in_stock';
 		}
 
-		$google_category = $product->get_meta('_product_google_category');
+		$google_category = $product->get_meta('_product_google_category') ?: '';
 
 		$brand = $product->get_meta('_product_brand') ?: $this->default_brand;
 
@@ -242,6 +242,20 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 			$gtin = $product->get_meta('_product_gtin');
 			$mpn = $product->get_meta('_product_mpn');
 			$condition = $product->get_meta('_product_condition');
+			if ( isset($parent_product) ) {
+				$gtin = $product->get_meta('variable_product_gtin');
+				$mpn = $product->get_meta('variable_product_mpn');
+			}
+		}
+
+		// Obtain custom meta data for from parent product
+		if ( $this->product_variants == 'variants_only' and isset($parent_product) ) {
+			$description = $parent_product->get_description();
+			$google_category = $parent_product->get_meta('_product_google_category') ?: '';
+			$brand = $parent_product->get_meta('_product_brand') ?: $this->default_brand;
+			if ( $identifier_exists == 'yes' ) {
+				$condition = $parent_product->get_meta('_product_condition');
+			}
 		}
 
 		$shipping_weight = '';
@@ -260,7 +274,8 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 		$title = $product->get_title();
 
 		foreach ($attributes as $key => $value) {
-			if ( is_scalar($value) ) {
+			//error_log( print_r($value, 1) );
+			if ( is_scalar($value) && !empty($value) ) {
 				$title .= " - {$value}"; 
 			}
 		}

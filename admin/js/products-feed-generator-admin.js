@@ -11,7 +11,9 @@
 		'size': 'Google: Size',
 		'color': 'Google: Color',
 		'material': 'Google: Material',
-		'pattern': 'Google: Pattern'
+		'pattern': 'Google: Pattern',
+		'age_group': 'Google: Age Group',
+		'gender': 'Google: Gender'
 	};
 
 	/**
@@ -59,11 +61,15 @@
 	 */
 	function get_attribute_template(key, val) {
 
-		let label = jsVars.attributes[val];
+		if (! jsVars.attributes[val] ) {
+			return '';
+		}
+
+		let label = jsVars.attributes[val].attribute_label;
 
 		let html = `
 		<div data-key="${key}" data-val="${val}" class="attrib-set">
-			<input type="hidden" name="attrib_map_${key}" name="attrib_map_${key}" value="${val}">
+			<input type="hidden" name="attrib_map_${key}" value="${val}">
 			<span class="field">${google_fields[key]}</span> \u2192 <span class="attrib">${label}</span>
 			<button id="del_attribute_mapping_${key}">Delete</button>
 		</div>`;
@@ -211,6 +217,7 @@
 
 		for (let key in google_fields) {
 			if ( attributes_map[key] ) {
+				console.log(attributes_map[key]);
 				attrib_map += get_attribute_template(key, attributes_map[key]);
 			} else {
 				google_options += `<option value="${key}">${google_fields[key]}</option>`;
@@ -218,8 +225,9 @@
 		}
 
 		for (let key in jsVars.attributes) {
-			if (! attributes_map_rev[key] ) {
-				attrib_options += `<option value="${key}">${jsVars.attributes[key]}</option>`;
+			let attr = jsVars.attributes[key];
+			if (! attributes_map_rev[attr.attribute_name] ) {
+				attrib_options += `<option value="${key}">${attr.attribute_label}</option>`;
 			}
 		}
 

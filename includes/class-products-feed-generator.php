@@ -162,10 +162,12 @@ class Products_Feed_Generator {
 	 */
 	private function define_admin_hooks() {
 
+		$plugin_admin = new Products_Feed_Generator_Admin( $this->get_plugin_name(), $this->get_version() );
+
+		$this->loader->add_action( 'woocommerce_attribute_deleted', $plugin_admin, 'woo_attribute_deleted', 10, 3 );
+
 		if ( is_admin() ) {
 			
-			$plugin_admin = new Products_Feed_Generator_Admin( $this->get_plugin_name(), $this->get_version() );
-
 			$tab = sanitize_key( $_GET['tab'] );
 			$page = sanitize_key( $_GET['page'] );
 			$section = sanitize_key( $_GET['section'] );
@@ -173,18 +175,21 @@ class Products_Feed_Generator {
 			if ($page == 'wc-settings' and $tab == 'products' and $section == 'pfg') {
 				$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 				$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+			} else {
+				$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_woo_styles' );
 			}
 
-			$this->loader->add_action( 'woocommerce_product_options_general_product_data', $plugin_admin, 'woocommerce_product_custom_fields', 10, 1);
-			$this->loader->add_filter( 'woocommerce_get_sections_products', $plugin_admin, 'woo_add_section', 10, 2 );
+			$this->loader->add_filter( 'woocommerce_get_sections_products', $plugin_admin, 'woo_add_section', 10, 1 );
 			$this->loader->add_filter( 'woocommerce_get_settings_products', $plugin_admin, 'woo_all_settings', 10, 2 );
-
-
 			$this->loader->add_action( 'woocommerce_admin_field_button', $plugin_admin, 'woo_add_admin_field_button' );
-
 			$this->loader->add_action( 'woocommerce_settings_save_products', $plugin_admin, 'woo_save_settings' );
-			$this->loader->add_action( 'woocommerce_process_product_meta', $plugin_admin, 'woocommerce_product_custom_fields_save', 10, 1 );
+			$this->loader->add_action( 'woocommerce_product_options_general_product_data', $plugin_admin, 'woo_custom_fields', 10, 0);
+			$this->loader->add_action( 'woocommerce_process_product_meta', $plugin_admin, 'woo_custom_fields_save', 10, 1 );
 
+			$this->loader->add_action( 'woocommerce_variation_options_pricing', $plugin_admin, 'woo_custom_fields_to_variations', 10, 3 );
+			$this->loader->add_action( 'woocommerce_save_product_variation', $plugin_admin, 'woo_custom_fields_to_variations_save', 10, 2 );
+			// $this->loader->add_filter( 'woocommerce_available_variation', $plugin_admin, 'woo_custom_fields_variation_data', 10, 1 );
+			
 			$this->loader->add_action( 'wp_ajax_generate_google_products_feed', $plugin_admin, 'generate_google_products_feed' );
 			
 		}

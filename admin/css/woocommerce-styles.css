@@ -1,0 +1,37 @@
+#woocommerce-product-data .woocommerce_options_panel .form-field._product_condition_field .wc-radios label {
+	margin-left: 0;
+}
+
+.form-table td fieldset li {
+	margin-bottom: 0;
+}
+
+.woocommerce_options_panel .product_feed_settings {
+	border: 1px solid #eee;
+	margin: 15px;
+}
+
+.woocommerce_options_panel .product_feed_settings > legend {
+	float: none;
+	margin-left: 0;
+	width: initial;
+	padding: 0 5px;
+	margin-left: 15px;
+}
+
+.product_identifiers {
+	display: flex;
+	justify-content: space-between;
+	clear: both;
+}
+
+.product_identifiers .form-field {
+	flex-basis: 48%;
+}
+
+.product_identifiers .form-field input {
+	vertical-align: middle;
+    margin: 2px 0 0;
+    padding: 5px;
+    width: 100%;
+}

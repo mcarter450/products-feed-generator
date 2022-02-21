@@ -52,6 +52,8 @@ class Products_Feed_Generator_Admin {
 	 */
 	protected $attributes_map;
 
+	protected $product_identifiers;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -66,6 +68,7 @@ class Products_Feed_Generator_Admin {
 
 		$this->debug_log = get_option('pfg_product_debug_log', 'no');
 		$this->attributes_map = get_option('pfg_product_attributes_map');
+		$this->product_identifiers = get_option('pfg_product_identifiers', 'no');
 		
 	}
 
@@ -173,7 +176,7 @@ class Products_Feed_Generator_Admin {
 		);
 		$settings[] = array(
 			'name'   => __( 'Unique Identifiers', 'products-feed-generator' ),
-			'id'     => 'pfg_product_identifieres',
+			'id'     => 'pfg_product_identifiers',
 			'type'   => 'checkbox',
 			'desc'  => __( 'Include unique identifiers (GTIN, mpn) on product edit page', 'products-feed-generator' ), 
 		);
@@ -255,18 +258,16 @@ class Products_Feed_Generator_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function woocommerce_product_custom_fields() {
+	public function woo_custom_fields() {
+		
+		echo '<fieldset class="product_feed_settings">';
 
-		global $woocommerce, $post;
-
-		$product_identifieres = get_option('pfg_product_identifieres', 'no');
-
-		echo '<div class="product_feed_settings">';
+		echo '<legend>'. __('Product Feed Generator Settings', 'products-feed-generator') .'</legend>';
 
 		woocommerce_wp_text_input(
 			array(
 				'id' => '_product_brand',
-				'label' => __('Google brand', 'products-feed-generator'),
+				'label' => __('Brand', 'products-feed-generator'),
 				'desc_tip' => true,
 				'description' => __('Define brand for this product.', 'products-feed-generator'),
 			)
@@ -278,16 +279,16 @@ class Products_Feed_Generator_Admin {
 				'label' => __('Google thumbnail', 'products-feed-generator'),
 				'data_type' => 'url',
 				'desc_tip' => true,
-				'description' => __('Define a thumbnail image URL for this product.', 'products-feed-generator'),
+				'description' => __('Define a custom thumbnail image URL for this product.', 'products-feed-generator'),
 			)
 		);
 
-		if ( $product_identifieres == 'yes' ) {
+		if ( $this->product_identifiers == 'yes' ) {
 
 			woocommerce_wp_text_input(
 				array(
 					'id' => '_product_gtin',
-					'label' => __('Google GTIN', 'products-feed-generator'),
+					'label' => __('GTIN', 'products-feed-generator'),
 					'desc_tip' => true,
 					'description' => __('Define GTIN (Global Trade Item Number) for this product.', 'products-feed-generator'),
 				)
@@ -296,7 +297,7 @@ class Products_Feed_Generator_Admin {
 			woocommerce_wp_text_input(
 				array(
 					'id' => '_product_mpn',
-					'label' => __('Google MPN', 'products-feed-generator'),
+					'label' => __('MPN', 'products-feed-generator'),
 					'desc_tip' => true,
 					'description' => __('Define MPN (Manufacturer Part Number) only if GTIN does not exist.', 'products-feed-generator'),
 				)
@@ -324,11 +325,46 @@ class Products_Feed_Generator_Admin {
 				'label' => __('Google category', 'products-feed-generator'),
 				'desc_tip' => true,
 				'style' => 'width:150px;',
-				'description' => __('Define ID number for Google product category', 'products-feed-generator'),
+				'description' => __('Define ID number for google product category', 'products-feed-generator'),
 			)
 		);
 
-		echo '</div>';
+		echo '</fieldset>';
+
+	}
+
+	/**
+	 * Render custom fields for variations
+	 *
+	 * @since    1.0.0
+	 */
+	public function woo_custom_fields_to_variations( $loop, $variation_data, $variation ) {
+
+		if ( $this->product_identifiers == 'yes' ) {
+
+			echo '<div class="product_identifiers">';
+
+			woocommerce_wp_text_input( 
+				array(
+					'id' => 'variable_product_gtin[' . $loop . ']',
+					'class' => 'short',
+					'label' => __( 'GTIN', 'products-feed-generator' ),
+					'value' => get_post_meta( $variation->ID, 'variable_product_gtin', true )
+				) 
+			);
+
+			woocommerce_wp_text_input( 
+				array(
+					'id' => 'variable_product_mpn[' . $loop . ']',
+					'class' => 'short',
+					'label' => __( 'MPN', 'products-feed-generator' ),
+					'value' => get_post_meta( $variation->ID, 'variable_product_mpn', true )
+				) 
+			);
+
+			echo '</div>';
+
+		}
 
 	}
 
@@ -338,12 +374,12 @@ class Products_Feed_Generator_Admin {
 	 * @since    1.0.0
 	 * @param integer $post_id
 	 */
-	public function woocommerce_product_custom_fields_save( $post_id ) {
+	public function woo_custom_fields_save( $post_id ) {
 
 		$product_brand = sanitize_text_field( $_POST['_product_brand'] );
 		$product_thumb = sanitize_url( $_POST['_product_image_thumbnail'] );
-		$product_gtin = sanitize_key( $_POST['_product_gtin'] );
-		$product_mpn = sanitize_key( $_POST['_product_mpn'] );
+		$product_gtin = sanitize_text_field( $_POST['_product_gtin'] );
+		$product_mpn = sanitize_text_field( $_POST['_product_mpn'] );
 		$product_google_category = intval( $_POST['_product_google_category'] );
 		$product_condition = sanitize_key( $_POST['_product_condition'] );
 
@@ -353,6 +389,26 @@ class Products_Feed_Generator_Admin {
 		update_post_meta( $post_id, '_product_mpn', $product_mpn );
 		update_post_meta( $post_id, '_product_google_category', $product_google_category );
 		update_post_meta( $post_id, '_product_condition', $product_condition );
+
+	}
+
+	/**
+	 * Save free shipping badge setting
+	 *
+	 * @since    1.0.0
+	 * @param integer $post_id
+	 */
+	public function woo_custom_fields_to_variations_save( $variation_id, $i ) {
+
+		$variable_product_gtin = sanitize_text_field( $_POST['variable_product_gtin'][$i] );
+   		if ( isset( $variable_product_gtin ) ) {
+   			update_post_meta( $variation_id, 'variable_product_gtin', $variable_product_gtin );
+   		}
+
+   		$variable_product_mpn = sanitize_text_field( $_POST['variable_product_mpn'][$i] ); 
+   		if ( isset( $variable_product_mpn ) ) {
+   			update_post_meta( $variation_id, 'variable_product_mpn', $variable_product_mpn );
+   		}
 
 	}
 
@@ -370,7 +426,7 @@ class Products_Feed_Generator_Admin {
 			foreach ($_POST as $key => $value) {
 				if (stripos($key, 'attrib_map_') !== false) {
 					$attribkey = substr( $key, strlen('attrib_map_') );
-					$attribval = sanitize_key($value);
+					$attribval = sanitize_text_field($value);
 
 					$attributes_map[$attribkey] = $attribval;
 				}
@@ -402,6 +458,32 @@ class Products_Feed_Generator_Admin {
 			wp_schedule_event(time(), $cron_schedule, 'generate_google_products_feed');
 		}
 		
+	}
+
+	/**
+	 * After deleting an attribute.
+	 *
+	 * @since    1.0.0
+	 * @param int    $id       Attribute ID.
+	 * @param string $name     Attribute name.
+	 * @param string $taxonomy Attribute taxonomy name.
+	 */
+	public function woo_attribute_deleted( $id,  $name,  $taxonomy ) {
+
+		$attributes_map = get_option('pfg_product_attributes_map');
+
+		$delete = false;
+		foreach ($attributes_map as $key => $attrval) {
+			if ($attrval == "id:{$id}") {
+				unset($attributes_map[$key]);
+				$delete = true;
+			}
+		}
+
+		if ($delete) {
+			update_option('pfg_product_attributes_map', $attributes_map);
+		}
+
 	}
 
 	/**
@@ -448,13 +530,10 @@ class Products_Feed_Generator_Admin {
 			wp_send_json_error($error);
 		}
 
-		$parent_products = array();
-
 		// get parent products first
 		foreach ($posts as $post) {
 
-			$product = wc_get_product($post->ID);
-			$parent_desc = $product->get_description();
+			$product = $parent_product = wc_get_product($post->ID);
 			$children = $product->get_children();
 			$post_title = $post->post_title;
 
@@ -463,7 +542,7 @@ class Products_Feed_Generator_Admin {
 			if ( $product_variants == 'parent_only' or 
 				 $product_variants == 'parent_and_variants' ) {
 
-				$xml_writer->write_product_data( $product, $parent_desc );
+				$xml_writer->write_product_data( $product );
 
 			}
 
@@ -474,7 +553,7 @@ class Products_Feed_Generator_Admin {
 				foreach ($children as $variant_id) {
 					$product = wc_get_product($variant_id);
 
-					$xml_writer->write_product_data( $product, $parent_desc );
+					$xml_writer->write_product_data( $product, $parent_product );
 				}
 
 			}
@@ -500,48 +579,30 @@ class Products_Feed_Generator_Admin {
 	}
 
 	/**
+	 * Register the stylesheets for the woocommmerce product editor.
+	 *
+	 * @since    1.0.0
+	 */
+	public function enqueue_woo_styles() {
+
+		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/woocommerce-styles.css', array(), $this->version, 'all' );
+
+	}
+
+	/**
 	 * Register the JavaScript for the admin area.
 	 *
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
 
-		global $wpdb;
-
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/products-feed-generator-admin.js', array( 'jquery' ), $this->version, false );
 
-		if ( $filtered_attributes = $_COOKIE['pfg_attribute_map'] ) {
-			$filtered_attributes = json_decode(stripslashes($filtered_attributes));
-		}
-		else {
-
-			$results = $wpdb->get_results( "SELECT meta_value FROM {$wpdb->prefix}postmeta where meta_key = '_product_attributes' LIMIT 100", OBJECT );
-
-			$filtered_attributes = array();
-
-			foreach ($results as $row) {
-				$attributes = unserialize($row->meta_value);
-				if ( is_array($attributes) ) {
-					foreach ($attributes as $key => $value) {
-						if ($value['is_visible'] and $value['is_variation']) {
-							$filtered_attributes[$key] = $value['name'];
-						}
-					}
-				}
-			}
-
-			$json = json_encode($filtered_attributes);
-
-			// Only set cookie cache if less than 4096 bytes
-			if ( mb_strlen($json, '8bit') < 4096 ) {
-				setcookie("pfg_attribute_map", $json, time()+3600); // Expires in 1 hour
-			}
-
-		}
+		$attributes = wc_get_attribute_taxonomies();
 
 		$local_vars = array( 
 			'pluginUrl' => ( plugins_url() .'/'. $this->plugin_name ),
-			'attributes' => $filtered_attributes,
+			'attributes' => $attributes,
 			'attributes_map' => $this->attributes_map,
 		);
 
