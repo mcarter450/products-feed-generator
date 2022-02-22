@@ -1,7 +1,7 @@
 === Plugin Name ===
 Contributors: mcarter76
 Donate link: https://www.kahoycrafts.com
-Tags: products feed generator, woocommerce product feed, google shopping feed, e-commerce
+Tags: products feed generator, woocommerce product feed, xml data feed, google shopping, google shopping feed, structured data, woocommerce, marketing channel, e-commerce, handmade, small shop
 Requires at least: 5.6
 Tested up to: 5.9
 Requires PHP: 7.0
@@ -13,10 +13,24 @@ Generates an XML Products Feed for Google Merchant Center in RSS 2.0 format.
 
 == Description ==
 
-This plugin generates an XML Products Feed for Google Merchant Center using an existing catalog of WooCommerce products.
+This plugin generates a Data Feed for Google Shopping using an existing catalog of WooCommerce products.
 
-Additionally this plugin supports XSL templates that can be used to transform the primary google feed to support other XML feed formats, such as Facebook or Pinterest. This helps to make for a lighter footprint and supports a wide variety of  different feed formats. The only limitation being that only fields existing in the primary food can be referenced in a transformation.
+There are quite a few plugins for generating shopping feeds, but most of them lacked features I needed, or only made them available in premium versions. This plugin is intended for small and handmade shops who want to get up and running quickly.
 
+Products Feed Generator for WooCommerce provides the most essential features needed to create a Google Shopping feed, and streamlines the process of mapping designated google variant related fields to custom product attributes. We hope you'll find the interface to be simple, clean, and uncluttered.
+
+Products Feed Generator takes on the challenge of maintaining a shopping feed by doing as much as possible automatically and with a minimal amount of configuration.
+
+This plugin allows a user to do the following:
+
+- Configure a Google Shopping XML feed and automatically save it to the uploads directory
+- Configure a Cron task to generate a feed Daily, Twice Daily, Hour or Weekly.
+- Configure a Feed to include: Parent Products only, Parent Products + Variations, or Variations only.
+- Map WooCommerce global product attributes to designated google shopping fields
+- Map WooCommerce shipping classes to Google shipping labels
+- Add GTIN, MPN and more...
+- Optionally add product attributes to a product details section
+- Optionally write debug and info messages to WC status log
 
 == Installation ==
 
@@ -26,17 +40,22 @@ e.g.
 
 1. Upload `products-feed-generator.php` to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('plugin_name_hook'); ?>` in your templates
+1. Go to the settings page: WooCommerce > Settings > Products > Products Feed Generator
+1. Configure the plugin and any desired options
 
 == Frequently Asked Questions ==
 
-= A question that someone might have =
+= How many products can be added to a feed =
 
-An answer to that question.
+This version of the plugin is limited to 100 unique products or variations. Handling additional products would likely require batch processing or special resource considerations, subjects that are currently beyond the scope of this project.
 
-= What about foo bar? =
+= What feed formats are supported =
 
-Answer to foo bar dilemma.
+Only XMl is supported at this time, although additional formats are planned for a future release.
+
+= Does this plugin support other marketplaces =
+
+Only Google Shopping is supported at this time, although additional marketplaces are planned for a future release.
 
 == Screenshots ==
 
@@ -48,48 +67,5 @@ directory take precedence. For example, `/assets/screenshot-1.png` would win ove
 
 == Changelog ==
 
-= 1.0 =
-* A change since the previous version.
-* Another change.
-
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
-
-== Upgrade Notice ==
-
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
-
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
-
-== Arbitrary section ==
-
-You may provide arbitrary sections, in the same format as the ones above.  This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation."  Arbitrary sections will be shown below the built-in sections outlined above.
-
-== A brief Markdown Example ==
-
-Ordered list:
-
-1. Some feature
-1. Another feature
-1. Something else about the plugin
-
-Unordered list:
-
-* something
-* something else
-* third thing
-
-Here's a link to [WordPress](http://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax].
-Titles are optional, naturally.
-
-[markdown syntax]: http://daringfireball.net/projects/markdown/syntax
-            "Markdown is what the parser uses to process much of the readme file"
-
-Markdown uses email style notation for blockquotes and I've been told:
-> Asterisks for *emphasis*. Double it up  for **strong**.
-
-`<?php code(); // goes in backticks ?>`
+= 1.0.0 - 2022-02-21 =
+* First release!

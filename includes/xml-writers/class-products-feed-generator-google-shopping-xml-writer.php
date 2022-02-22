@@ -120,11 +120,14 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 		$this->product_details_section =  get_option('pfg_product_details_section', 'no');
 
 		$attributes_map = get_option('pfg_product_attributes_map');
-		$this->attributes_map = $attributes_map['reverse'];
+		$this->attributes_map = $attributes_map['reverse'] ?? array();
 		$this->build_shipping_class_map();
 
 		$this->writer = $writer = new XMLWriter(); 
-		$writer->openURI($feed_file);   
+		if (! $writer->openURI($feed_file) ) {
+			error_log($feed_file);
+			throw new Exception('File could not be created.');
+		}  
 		$writer->startDocument('1.0','UTF-8');
 		$writer->setIndent(4);
 		$writer->startElement('rss');

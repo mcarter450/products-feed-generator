@@ -127,11 +127,6 @@ class Products_Feed_Generator {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-products-feed-generator-public.php';
 
-		/**
-		 * Data model for google feed
-		 */
-		//require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/models/class-products-feed-generator-google-feed-model.php';
-
 		$this->loader = new Products_Feed_Generator_Loader();
 
 	}
@@ -164,8 +159,6 @@ class Products_Feed_Generator {
 
 		$plugin_admin = new Products_Feed_Generator_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'woocommerce_attribute_deleted', $plugin_admin, 'woo_attribute_deleted', 10, 3 );
-
 		if ( is_admin() ) {
 			
 			$tab = sanitize_key( $_GET['tab'] );
@@ -188,15 +181,16 @@ class Products_Feed_Generator {
 
 			$this->loader->add_action( 'woocommerce_variation_options_pricing', $plugin_admin, 'woo_custom_fields_to_variations', 10, 3 );
 			$this->loader->add_action( 'woocommerce_save_product_variation', $plugin_admin, 'woo_custom_fields_to_variations_save', 10, 2 );
-			// $this->loader->add_filter( 'woocommerce_available_variation', $plugin_admin, 'woo_custom_fields_variation_data', 10, 1 );
+
+			$this->loader->add_action( 'woocommerce_attribute_deleted', $plugin_admin, 'woo_attribute_deleted', 10, 3 );
 			
 			$this->loader->add_action( 'wp_ajax_generate_google_products_feed', $plugin_admin, 'generate_google_products_feed' );
+			$this->loader->add_filter( 'plugin_action_links_'. $this->plugin_name .'/'. $this->plugin_name .'.php', $plugin_admin, 'pfg_settings_link' );
 			
 		}
 
 		// Products feed generation hook
 		$this->loader->add_action( 'generate_google_products_feed', $plugin_admin, 'generate_google_products_feed' );
-		
 
 	}
 
@@ -211,12 +205,9 @@ class Products_Feed_Generator {
 
 		$plugin_public = new Products_Feed_Generator_Public( $this->get_plugin_name(), $this->get_version() );
 
+		// No public functionaliy yet
 		//$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		//$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
-		
-		// $this->loader->add_action( 'generate_google_products_feed', $plugin_public, 'generate_google_products_feed' );
-		// $this->loader->add_action( 'wp_ajax_generate_google_products_feed', $plugin_public, 'generate_google_products_feed' );
-
 
 	}
 

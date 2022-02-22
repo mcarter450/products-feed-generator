@@ -179,8 +179,6 @@
 
 		let $load_icon = $btn_el.next('.load-icon').append($spinner);
 
-		let $view_url = $load_icon.next('.view-url');
-
 		let $feed_error = $('#feed_management_error');
 
 		$feed_error.text(''); // Clear any error messages
@@ -193,9 +191,10 @@
 			$btn_el.blur().prop('disabled', false);
 
 			if (response.success) {
-				$view_url.show();
+				$('#view_feed_url').show();
 			}
 			else {
+
 				let error = response.data.shift();
 				$feed_error.css('padding', '15px 0px');
 				$feed_error.text( 'Error: '+ error.message );

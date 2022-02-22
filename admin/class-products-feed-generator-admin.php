@@ -71,9 +71,28 @@ class Products_Feed_Generator_Admin {
 		$this->version = $version;
 
 		$this->debug_log = get_option('pfg_product_debug_log', 'no');
-		$this->attributes_map = get_option('pfg_product_attributes_map');
+		$this->attributes_map = get_option('pfg_product_attributes_map', array());
 		$this->product_identifiers = get_option('pfg_product_identifiers', 'no');
 		
+	}
+
+	/**
+	 * Add settings link to plugins page
+	 *
+	 * @since    1.0.0
+	 * @param array $links
+	 * @return array 	Links
+	 */
+	public function pfg_settings_link( $links ) {
+
+		$link = '<a href="' .
+			admin_url( 'admin.php?page=wc-settings&tab=products&section=pfg' ) .
+			'">' . __('Settings') . '</a>';
+
+		array_unshift($links, $link);
+
+		return $links;
+
 	}
 
 	/**
@@ -168,7 +187,7 @@ class Products_Feed_Generator_Admin {
 		$settings[] = array( 
 			'name'   => __( 'Products Feed Generator Settings', 'products-feed-generator' ), 
 			'type'   => 'title', 
-			'desc'   => __( 'The following options are used to configure the products feed and all optional settings', 'products-feed-generator' ), 
+			'desc'   => __( 'The following options are used to configure a feed for Google Shopping', 'products-feed-generator' ), 
 			'id'     => 'pfg' 
 		);
 		$settings[] = array(
@@ -199,14 +218,12 @@ class Products_Feed_Generator_Admin {
 				'parent_and_variants' => __( 'Parent products + Variations', 'products-feed-generator' ),
 				'variants_only' => __( 'Variations only', 'products-feed-generator' ),
 			),
-			'desc_tip' => 'Including the parent product is highly recommended',
-			//'desc'  => __( 'Include product variations in feeds', 'products-feed-generator' ), 
 		);
 		$settings[] = array(
 			'name'   => __( 'Default Material', 'products-feed-generator' ),
 			'id'     => 'pfg_product_material',
 			'type'   => 'text',
-			'placeholder' => 'Plastic',
+			'placeholder' => 'plastic',
 			'desc' => __( 'Default material to include with mapped attribute', 'products-feed-generator' ),
 			'desc_tip' => __( 'Is the "Google: Material" field mapped to an attribute?', 'products-feed-generator' ),
 		);
@@ -489,7 +506,9 @@ class Products_Feed_Generator_Admin {
 	 */
 	public function woo_attribute_deleted( $id,  $name,  $taxonomy ) {
 
-		$attributes_map = get_option('pfg_product_attributes_map');
+		$attributes_map = get_option('pfg_product_attributes_map', array());
+		if ( empty($attributes_map) ) return;
+
 		$attributes_map_rev = $attributes_map['reverse'];
 
 		$dirty = false;
@@ -526,10 +545,15 @@ class Products_Feed_Generator_Admin {
 		if ( $upload_dir = wp_upload_dir() ) {
 			$feed_dir = $upload_dir['basedir'] . '/woo-products-feed-generator';
 
-			$feed_name = get_option('pfg_product_feed_name', 'google_products_feed.xml');
+			$feed_name = get_option('pfg_product_feed_name');
+
+			if (empty($feed_name)) {
+				$feed_name = 'google_products_feed.xml';
+			} 
 
 			$feed_file = $feed_dir .'/'. $feed_name;
-		} else {
+		} 
+		else {
 			$error = new WP_Error( '001', 'No upload dir found.' );
 
 			wp_send_json_error($error);
@@ -537,7 +561,16 @@ class Products_Feed_Generator_Admin {
 
 		$product_variants = get_option('pfg_product_variants', 'parent_only');
 
-		$xml_writer = new Products_Feed_Generator_Google_Shopping_XML_Writer($feed_file, $product_variants);
+		try {
+			$xml_writer = new Products_Feed_Generator_Google_Shopping_XML_Writer($feed_file, $product_variants);
+		}
+		catch (Exception $e) {
+			$error = new WP_Error( '002', $e->getMessage() );
+
+			wp_send_json_error($error);
+
+			return;
+		}
 
 		$total_records = 100;
 
@@ -549,7 +582,7 @@ class Products_Feed_Generator_Admin {
 		$query = new WP_Query();
 
 		if (! $posts = $query->query($params) ) {
-			$error = new WP_Error( '002', 'No products found.' );
+			$error = new WP_Error( '003', 'No products found.' );
 
 			wp_send_json_error($error);
 		}

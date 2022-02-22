@@ -23,29 +23,47 @@
 class Products_Feed_Generator_Deactivator {
 
 	/**
-	 * Short Description. (use period)
-	 *
-	 * Long Description.
+	 * Cleanup files and variables left by plugin
 	 *
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
 
-		if ($this->debug_log == 'yes') {
+		$debug_log = get_option('pfg_product_debug_log');
+		if ( $debug_log == 'yes' ) {
 			wc_get_logger()->info('Remove scheduled cron task', array( 'source' => 'products-feed-generator' ) );
 		}
 		wp_clear_scheduled_hook('generate_google_products_feed');
 
-		if ( $upload_dir = wp_upload_dir() ) {
-			$feed_dir = $upload_dir['basedir'] . '/woo-products-feed-generator';
-			if ( file_exists($feed_dir) ) {
-				rmdir($feed_dir);
-			}
+		// Should user xml files be deleted?
+		// if ( $upload_dir = wp_upload_dir() ) {
+		// 	$feed_dir = $upload_dir['basedir'] . '/woo-products-feed-generator';
+		// 	if ( file_exists($feed_dir) ) {
+		// 		foreach (glob("{$feed_dir}/*.xml") as $filename) {
+		// 		   unlink($filename);
+		// 		}
+		// 		rmdir($feed_dir);
+		// 	}
+		// }
+
+		delete_option('pfg_product_brand');
+		delete_option('pfg_product_identifiers');
+		delete_option('pfg_product_details_section');
+		delete_option('pfg_product_variants');
+		delete_option('pfg_product_material');
+		delete_option('pfg_product_attributes_map');
+
+		$WC_Shipping = new WC_Shipping();
+		$shipping_classes = $WC_Shipping->get_shipping_classes();
+
+		foreach ($shipping_classes as $key => $value) {
+			delete_option("pfg_product_shipping_class_{$key}");
 		}
 
-		delete_opton('pfg_description'); // remove later
+		delete_option('pfg_product_feed_name');
+		delete_option('pfg_cron_schedule');
+		delete_option('pfg_product_debug_log');
 
-		//delete_post_meta($post_id, $key);
 	}
 
 }
