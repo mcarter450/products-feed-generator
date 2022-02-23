@@ -1,0 +1,214 @@
+# Copyright (C) 2022 Mike Carter
+# This file is distributed under the same license as the Products Feed Generator plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Products Feed Generator 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/products-feed-generator\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2022-02-23T07:38:21+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.4.0\n"
+"X-Domain: products-feed-generator\n"
+
+#. Plugin Name of the plugin
+#: admin/class-products-feed-generator-admin.php:107
+msgid "Products Feed Generator"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://www.kahoycrafts.com/products-feed-generator"
+msgstr ""
+
+#. Description of the plugin
+msgid "Generates an XML Products Feed for Google Merchant Center in RSS 2.0 format."
+msgstr ""
+
+#. Author of the plugin
+msgid "Mike Carter"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.kahoycrafts.com"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:131
+msgid "Generate feed"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:188
+msgid "Products Feed Generator Settings"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:190
+msgid "The following options are used to configure a feed for Google Shopping"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:194
+msgid "Default Brand"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:198
+msgid "Default when brand is not assigned at product level"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:201
+msgid "Unique Identifiers"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:204
+msgid "Include unique identifiers (GTIN, mpn) on product edit page"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:207
+msgid "Product Details"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:210
+msgid "Show list of attributes in product detail section"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:213
+msgid "Product Variants"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:217
+msgid "Parent products only"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:218
+msgid "Parent products + Variations"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:219
+msgid "Variations only"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:223
+msgid "Default Material"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:227
+msgid "Default material to include with mapped attribute"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:228
+msgid "Is the \"Google: Material\" field mapped to an attribute?"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:239
+msgid "Google shipping label value"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:245
+msgid "Feed Name"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:248
+msgid "File name of products feed"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:252
+msgid "Cron Schedule"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:255
+msgid "The cron schedule is based on the current system time. For example you select the \"Daily\" schedule and save changes at 2:00 pm, the task would be scheduled to run at 2:00 pm the following day."
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:257
+msgid "Daily"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:258
+msgid "Twice Daily"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:259
+msgid "Hourly"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:260
+msgid "Weekly"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:265
+msgid "Feed Actions"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:267
+msgid "Generate or view XML feed, be sure to save changes first"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:273
+msgid "Debug Logging"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:276
+msgid "Log debug and info messages to WC status log"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:294
+msgid "Product Feed Generator Settings"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:299
+msgid "Brand"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:301
+msgid "Define brand for this product."
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:308
+msgid "Google thumbnail"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:311
+msgid "Define a custom thumbnail image URL for this product."
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:320
+#: admin/class-products-feed-generator-admin.php:380
+msgid "GTIN"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:322
+msgid "Define GTIN (Global Trade Item Number) for this product."
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:329
+#: admin/class-products-feed-generator-admin.php:389
+msgid "MPN"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:331
+msgid "Define MPN (Manufacturer Part Number) only if GTIN does not exist."
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:338
+msgid "Condition"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:341
+msgid "New"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:342
+msgid "Used"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:343
+msgid "Refurbished"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:354
+msgid "Google category"
+msgstr ""
+
+#: admin/class-products-feed-generator-admin.php:357
+msgid "Define ID number for google product category"
+msgstr ""

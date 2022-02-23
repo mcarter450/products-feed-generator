@@ -15,11 +15,9 @@ Generates an XML Products Feed for Google Merchant Center in RSS 2.0 format.
 
 This plugin generates a Data Feed for Google Shopping using an existing catalog of WooCommerce products.
 
-There are quite a few plugins for generating shopping feeds, but most of them lacked features I needed, or only made them available in premium versions. This plugin is intended for small and handmade shops who want to get up and running quickly.
+Products Feed Generator for WooCommerce provides all of the necessary features to create a Google Shopping feed, and streamlines the process of mapping designated google variant related fields to custom product attributes. We hope you'll find the interface to be simple, clean, and uncluttered.
 
-Products Feed Generator for WooCommerce provides the most essential features needed to create a Google Shopping feed, and streamlines the process of mapping designated google variant related fields to custom product attributes. We hope you'll find the interface to be simple, clean, and uncluttered.
-
-Products Feed Generator takes on the challenge of maintaining a shopping feed by doing as much as possible automatically and with a minimal amount of configuration.
+Perfect for a small or handmade shop who wants to get up and running quickly. Products Feed Generator takes on the challenge of maintaining a shopping feed with a minimal amount of configuration. 
 
 This plugin allows a user to do the following:
 
@@ -29,6 +27,7 @@ This plugin allows a user to do the following:
 - Map WooCommerce global product attributes to designated google shopping fields
 - Map WooCommerce shipping classes to Google shipping labels
 - Add GTIN, MPN and more...
+- Add custom google thumbnail image for parent products
 - Optionally add product attributes to a product details section
 - Optionally write debug and info messages to WC status log
 

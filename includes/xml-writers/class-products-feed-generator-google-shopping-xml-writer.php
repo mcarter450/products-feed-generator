@@ -217,8 +217,6 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 
 	}
 
-
-
 	/**
 	 * Write XML for product data
 	 *

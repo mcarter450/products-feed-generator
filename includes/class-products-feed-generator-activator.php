@@ -23,9 +23,7 @@
 class Products_Feed_Generator_Activator {
 
 	/**
-	 * Short Description. (use period)
-	 *
-	 * Long Description.
+	 * Plugin activation
 	 *
 	 * @since    1.0.0
 	 */
