@@ -15,18 +15,18 @@ Generates an XML Products Feed for Google Merchant Center in RSS 2.0 format.
 
 This plugin generates a Data Feed for Google Shopping using an existing catalog of WooCommerce products.
 
-Products Feed Generator for WooCommerce provides all of the necessary features to create a Google Shopping feed, and streamlines the process of mapping designated google variant related fields to custom product attributes. We hope you'll find the interface to be simple, clean, and uncluttered.
+Products Feed Generator for WooCommerce provides all of the necessary features to create a Google Shopping feed and streamlines the process of mapping designated google variant-related fields to custom product attributes. We hope you'll find the interface to be simple, clean, and uncluttered.
 
-Perfect for a small or handmade shop who wants to get up and running quickly. Products Feed Generator takes on the challenge of maintaining a shopping feed with a minimal amount of configuration. 
+Perfect for a small or handmade shop that wants to get up and running quickly. Products Feed Generator takes on the challenge of maintaining a shopping feed with a minimal amount of configuration.
 
 This plugin allows a user to do the following:
 
 - Configure a Google Shopping XML feed and automatically save it to the uploads directory
-- Configure a Cron task to generate a feed Daily, Twice Daily, Hour or Weekly.
+- Configure a Cron task to generate a feed Daily, Twice Daily, Hour, or Weekly.
 - Configure a Feed to include: Parent Products only, Parent Products + Variations, or Variations only.
 - Map WooCommerce global product attributes to designated google shopping fields
 - Map WooCommerce shipping classes to Google shipping labels
-- Add GTIN, MPN and more...
+- Add GTIN, MPN, and more...
 - Add custom google thumbnail image for parent products
 - Optionally add product attributes to a product details section
 - Optionally write debug and info messages to WC status log
@@ -50,7 +50,7 @@ This version of the plugin is limited to 100 unique products or variations. Hand
 
 = What feed formats are supported =
 
-Only XMl is supported at this time, although additional formats are planned for a future release.
+Only XML is supported at this time, although additional formats are planned for a future release.
 
 = Does this plugin support other marketplaces =
 
@@ -58,11 +58,9 @@ Only Google Shopping is supported at this time, although additional marketplaces
 
 == Screenshots ==
 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
+1. Main Settings in WooCommerce (Part 1).
+2. Main Settings in WooCommerce (Part 2).
+3. Product Settings.
 
 == Changelog ==
 
