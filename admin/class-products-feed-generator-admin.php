@@ -130,33 +130,34 @@ class Products_Feed_Generator_Admin {
 
 		$name = __( 'Generate feed', 'products-feed-generator' );
 
+		$view_feed_label = __( 'View feed →', 'products-feed-generator' );
+
 		?>
 
 		<tr valign="top">
 			<th scope="row" class="titledesc">
 				<label for="<?php echo esc_attr( $value['id'] ); ?>">
 					<?php echo esc_html( $value['title'] ); ?>
-					<?php echo $description['tooltip_html']; ?>
+					<?php echo wp_kses_post( $description['tooltip_html'] ); ?>
 				</label>
 			</th>
-			<td class="forminp forminp-<?php echo sanitize_title( $value['type'] ) ?>">
+			<td class="forminp forminp-<?php echo esc_attr( $value['type'] ); ?>">
 				<div id="feed_management">
 					<button
-						name ="<?php echo $name; ?>"
+						name ="<?php echo esc_attr( $name ); ?>"
 						id   ="<?php echo esc_attr( $value['id'] ); ?>"
 						type="button"
 						style="<?php echo esc_attr( $value['css'] ); ?>"
-						value="<?php echo $name; ?>"
+						value="<?php echo esc_attr( $name ); ?>"
 						class="<?php echo esc_attr( $value['class'] ); ?>"
 					><?php echo $name ?></button>
 					<span class="load-icon"></span>
 					<span class="view-feed">
 						<?php if ( file_exists($feed_file) ): ?>
-							<a id="view_feed_url" class="view-url" target="_blank" href="<?php echo $feed_url; ?>">View feed →</a>
+							<a id="view_feed_url" class="view-url" target="_blank" href="<?php echo $feed_url; ?>"><?php echo esc_html( $view_feed_label ); ?></a>
 						<?php else: ?>
-							<a id="view_feed_url" class="view-url" style="display:none;" target="_blank" href="<?php echo $feed_url; ?>">View feed →</a>
+							<a id="view_feed_url" class="view-url" style="display:none;" target="_blank" href="<?php echo esc_url( $feed_url ); ?>"><?php echo esc_html( $view_feed_label ); ?></a>
 						<?php endif; ?>
-						<?php echo $description['description']; ?>
 					</span>
 				</div>
 				<div id="feed_management_error"></div>
