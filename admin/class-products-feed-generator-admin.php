@@ -150,11 +150,11 @@ class Products_Feed_Generator_Admin {
 						style="<?php echo esc_attr( $value['css'] ); ?>"
 						value="<?php echo esc_attr( $name ); ?>"
 						class="<?php echo esc_attr( $value['class'] ); ?>"
-					><?php echo $name ?></button>
+					><?php echo esc_html($name); ?></button>
 					<span class="load-icon"></span>
 					<span class="view-feed">
 						<?php if ( file_exists($feed_file) ): ?>
-							<a id="view_feed_url" class="view-url" target="_blank" href="<?php echo $feed_url; ?>"><?php echo esc_html( $view_feed_label ); ?></a>
+							<a id="view_feed_url" class="view-url" target="_blank" href="<?php echo esc_url($feed_url); ?>"><?php echo esc_html( $view_feed_label ); ?></a>
 						<?php else: ?>
 							<a id="view_feed_url" class="view-url" style="display:none;" target="_blank" href="<?php echo esc_url( $feed_url ); ?>"><?php echo esc_html( $view_feed_label ); ?></a>
 						<?php endif; ?>
