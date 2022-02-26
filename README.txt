@@ -1,6 +1,6 @@
 === Plugin Name ===
 Contributors: mcarter76
-Donate link: https://www.kahoycrafts.com
+Donate link: https://www.kahoycrafts.com/wordpress-plugin-donation/
 Tags: products feed generator, woocommerce product feed, xml data feed, google shopping, google shopping feed, structured data, woocommerce, marketing channel, e-commerce, handmade, small shop
 Requires at least: 5.6
 Tested up to: 5.9
