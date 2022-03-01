@@ -347,6 +347,8 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 			}
 		}
 
+		$materials_written = false;
+
 		// Map any custom attributes
 		foreach ($attributes as $key => $attribute) {
 
@@ -373,10 +375,10 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 						}
 						$materials = preg_replace('/[ ]*,[ ]*/i', '/', $options);
 
-						$writer->writeElement('g:material', $materials);
+						$materials_written = $writer->writeElement('g:material', $materials);
 					} 
 					elseif ($this->default_material) {
-						$writer->writeElement('g:material', $this->default_material);
+						$materials_written = $writer->writeElement('g:material', $this->default_material);
 					}
 
 				} 
@@ -397,13 +399,18 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 
 				if ($gfield == 'material') {
 					$material = $this->default_material ?  "{$this->default_material}/$attribute" : $attribute;
-					$writer->writeElement("g:{$gfield}", $material);
+					$materials_written = $writer->writeElement("g:{$gfield}", $material);
 				} 
 				else {
 					$writer->writeElement("g:{$gfield}", $attribute);
 				}
 			}
 
+		}
+
+		// Write default material if not handled in attributes loop
+		if (! $materials_written && $this->default_material ) {
+			$materials_written = $writer->writeElement('g:material', $this->default_material);
 		}
 
 		$writer->endElement(); // end item
