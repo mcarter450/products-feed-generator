@@ -16,7 +16,7 @@
  * Plugin Name:       Products Feed Generator
  * Plugin URI:        https://www.kahoycrafts.com/products-feed-generator
  * Description:       Generates an XML Products Feed for Google Merchant Center in RSS 2.0 format.
- * Version:           1.0.1
+ * Version:           1.0.3
  * Author:            Mike Carter
  * Author URI:        https://www.kahoycrafts.com
  * License:           GPL-2.0+

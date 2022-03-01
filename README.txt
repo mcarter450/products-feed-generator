@@ -5,7 +5,7 @@ Tags: products feed generator, woocommerce product feed, xml data feed, google s
 Requires at least: 5.6
 Tested up to: 5.9
 Requires PHP: 7.0
-Stable tag: 1.0.1
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,7 +64,13 @@ Only Google Shopping is supported at this time, although additional marketplaces
 
 == Changelog ==
 
-= 1.0.1 - 2022-02-21 =
+= 1.0.3 - 2022-02-28 =
+* Only show published products in feed
+
+= 1.0.2 - 2022-02-28 =
+* Fix bug with default material
+
+= 1.0.1 - 2022-02-28 =
 * Renamed elements for title, link and description.
 * Added support for default material in parent product
 

@@ -577,6 +577,7 @@ class Products_Feed_Generator_Admin {
 
 		$params = [
 			'post_type' => 'product',
+			'post_status' => 'publish',
 			'posts_per_page' => $total_records,
 		];
 
