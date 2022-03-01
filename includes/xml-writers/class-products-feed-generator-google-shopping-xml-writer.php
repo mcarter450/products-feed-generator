@@ -303,8 +303,8 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 		$writer->startElement('item');
 
 		$writer->writeElement('g:id', $id);
-		$writer->writeElement('g:title', $title);
-		$writer->writeElement('g:link', $link);
+		$writer->writeElement('title', $title);
+		$writer->writeElement('link', $link);
 		
 		if ( is_a($product, 'WC_Product_Variation') ) {
 
@@ -322,7 +322,7 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 
 		}
 
-		$writer->writeElement('g:description', $description);
+		$writer->writeElement('description', $description);
 		$writer->writeElement('g:price', $price);
 		$writer->writeElement('g:sale_price', $sale_price);
 		$writer->writeElement('g:availability', $availability);
@@ -374,6 +374,9 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 						$materials = preg_replace('/[ ]*,[ ]*/i', '/', $options);
 
 						$writer->writeElement('g:material', $materials);
+					} 
+					elseif ($this->default_material) {
+						$writer->writeElement('g:material', $this->default_material);
 					}
 
 				} 
