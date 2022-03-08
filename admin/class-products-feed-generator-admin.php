@@ -593,6 +593,10 @@ class Products_Feed_Generator_Admin {
 		foreach ($posts as $post) {
 
 			$product = $parent_product = wc_get_product($post->ID);
+			$visibility = $product->get_catalog_visibility('view');
+
+			if ($visibility == 'hidden') continue;
+
 			$children = $product->get_children();
 			$post_title = $post->post_title;
 
