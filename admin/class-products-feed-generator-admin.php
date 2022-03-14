@@ -406,19 +406,36 @@ class Products_Feed_Generator_Admin {
 	 */
 	public function woo_custom_fields_save( $post_id ) {
 
-		$product_brand = sanitize_text_field( $_POST['_product_brand'] );
-		$product_thumb = sanitize_url( $_POST['_product_image_thumbnail'] );
-		$product_gtin = sanitize_text_field( $_POST['_product_gtin'] );
-		$product_mpn = sanitize_text_field( $_POST['_product_mpn'] );
-		$product_google_category = intval( $_POST['_product_google_category'] );
-		$product_condition = sanitize_key( $_POST['_product_condition'] );
+		if ( isset( $_POST['_product_brand']) ) {
 
-		update_post_meta( $post_id, '_product_brand', $product_brand );
-		update_post_meta( $post_id, '_product_image_thumbnail', $product_thumb );
-		update_post_meta( $post_id, '_product_gtin', $product_gtin );
-		update_post_meta( $post_id, '_product_mpn', $product_mpn );
-		update_post_meta( $post_id, '_product_google_category', $product_google_category );
-		update_post_meta( $post_id, '_product_condition', $product_condition );
+			update_post_meta( $post_id, '_product_brand', sanitize_text_field( $_POST['_product_brand'] ) );
+		}
+		if ( isset( $_POST['_product_image_thumbnail'] ) ) {
+
+			update_post_meta( $post_id, '_product_image_thumbnail', sanitize_url( $_POST['_product_image_thumbnail'] ) );
+		}
+		if ( isset( $_POST['_product_gtin'] ) ) {
+
+			update_post_meta( $post_id, '_product_gtin', sanitize_text_field( $_POST['_product_gtin'] ) );
+		}
+		if ( isset( $_POST['_product_mpn'] ) ) {
+
+			update_post_meta( $post_id, '_product_mpn', sanitize_text_field( $_POST['_product_mpn'] ) );
+		}
+		if ( isset( $_POST['_product_google_category'] ) ) {
+
+			$product_category = '';
+
+			if (! empty($_POST['_product_google_category']) ) {
+				$product_category = intval( $_POST['_product_google_category'] );
+			}
+
+			update_post_meta( $post_id, '_product_google_category', $product_category );
+		}
+		if ( isset( $_POST['_product_condition'] ) ) {
+
+			update_post_meta( $post_id, '_product_condition', sanitize_key( $_POST['_product_condition'] ) );
+		}
 
 	}
 
@@ -430,14 +447,14 @@ class Products_Feed_Generator_Admin {
 	 */
 	public function woo_custom_fields_to_variations_save( $variation_id, $i ) {
 
-		$variable_product_gtin = sanitize_text_field( $_POST['variable_product_gtin'][$i] );
-   		if ( isset( $variable_product_gtin ) ) {
-   			update_post_meta( $variation_id, 'variable_product_gtin', $variable_product_gtin );
+   		if ( isset( $_POST['variable_product_gtin'][$i] ) ) {
+
+   			update_post_meta( $variation_id, 'variable_product_gtin', sanitize_text_field( $_POST['variable_product_gtin'][$i] ) );
    		}
 
-   		$variable_product_mpn = sanitize_text_field( $_POST['variable_product_mpn'][$i] ); 
-   		if ( isset( $variable_product_mpn ) ) {
-   			update_post_meta( $variation_id, 'variable_product_mpn', $variable_product_mpn );
+   		if ( isset( $_POST['variable_product_mpn'][$i] ) ) {
+
+   			update_post_meta( $variation_id, 'variable_product_mpn', sanitize_text_field( $_POST['variable_product_mpn'][$i] ) );
    		}
 
 	}
@@ -451,7 +468,7 @@ class Products_Feed_Generator_Admin {
 
 		$attributes_map = array();
 
-		$section = sanitize_key( $_GET['section'] );
+		$section = isset( $_GET['section'] ) ? sanitize_key( $_GET['section'] ) : '';
 		if ($section == 'pfg') {
 			foreach ($_POST as $key => $value) {
 				if (stripos($key, 'attrib_map_') !== false) {
@@ -468,13 +485,13 @@ class Products_Feed_Generator_Admin {
 					'reverse' => array_flip($attributes_map),
 				);
 			}
+
+			$this->attributes_map = $attributes_map;
+
+			update_option('pfg_product_attributes_map', $attributes_map);
 		}
 
-		$this->attributes_map = $attributes_map;
-
-		update_option('pfg_product_attributes_map', $attributes_map);
-
-		$cron_schedule = sanitize_key($_POST['pfg_cron_schedule']);
+		$cron_schedule = isset($_POST['pfg_cron_schedule']) ? sanitize_key($_POST['pfg_cron_schedule']) : null;
 
 		if ( $cron_schedule and wp_next_scheduled('generate_google_products_feed') ) {
 
@@ -488,7 +505,8 @@ class Products_Feed_Generator_Admin {
 				wp_schedule_event(time(), $cron_schedule, 'generate_google_products_feed');
 			}
 
-		} else {
+		} elseif ( $cron_schedule ) {
+			// Schedule new cron task
 			if ($this->debug_log == 'yes') {
 				wc_get_logger()->info('Create new scheduled cron task', array( 'source' => 'products-feed-generator' ) );
 			}
@@ -606,7 +624,6 @@ class Products_Feed_Generator_Admin {
 				 $product_variants == 'parent_and_variants' ) {
 
 				$xml_writer->write_product_data( $product );
-
 			}
 
 			// Get all child variants
