@@ -3,9 +3,9 @@ Contributors: mcarter76
 Donate link: https://www.kahoycrafts.com/wordpress-plugin-donation/
 Tags: products feed generator, woocommerce product feed, xml data feed, google shopping, google shopping feed, structured data, woocommerce, marketing channel, e-commerce, handmade, small shop
 Requires at least: 5.6
-Tested up to: 5.9
+Tested up to: 5.9.2
 Requires PHP: 7.0
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,9 @@ Only Google Shopping is supported at this time, although additional marketplaces
 3. Product Settings.
 
 == Changelog ==
+
+= 1.0.5 - 2022-03-13 =
+* Fix bug with save handlers and duplicate cron tasks.
 
 = 1.0.4 - 2022-03-07 =
 * Add support for WooCommerce catalog visibility, hidden products are no longer included in feed.
