@@ -251,7 +251,7 @@ class Products_Feed_Generator_Google_Shopping_XML_Writer {
 		}
 		
 		$availability = 'out_of_stock';
-		if ( $product->get_stock_quantity() > 0 || $product->get_type() == 'external' ) {
+		if ( $product->get_stock_status() == 'instock' || $product->get_type() == 'external' ) {
 			$availability = 'in_stock';
 		}
 

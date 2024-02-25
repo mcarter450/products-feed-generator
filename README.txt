@@ -5,7 +5,7 @@ Tags: products feed generator, woocommerce product feed, xml data feed, google s
 Requires at least: 5.6
 Tested up to: 6.4
 Requires PHP: 7.0
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,9 @@ Only Google Shopping is supported at this time, although additional marketplaces
 3. Product Settings.
 
 == Changelog ==
+
+= 1.0.7 - 2024-02-25 =
+* Fix bug with product stock status.
 
 = 1.0.6 - 2024-02-19 =
 * Fix bug with external products being out of stock.
